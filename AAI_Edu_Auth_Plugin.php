@@ -107,10 +107,9 @@ class AAI_Edu_Auth_Plugin {
 		$ssp = new SimpleSAML_Auth_Simple('fedlab-sp');
 
 		if ($ssp->isAuthenticated() ) {
-			$ssp->logout();
+			$ssp->logout( home_url() );
 		}
 
-		wp_redirect( home_url() );
 		exit;
 	}
 
