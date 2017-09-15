@@ -17,12 +17,42 @@
 // Napravi readme: https://generatewp.com/plugin-readme/
 // Uskladi ime direktorija s nazivom plugina.
 
+require('AAIEduHr_Options.php');
+
 class AAIEduHr_Auth {
 
 	// Path to the SSP package.
 	protected $ssp_path = 'E:/projects/simplesamlphp/www/_include.php';
 
+	protected $options;
+
 	public function __construct() {
+
+	    $this->options = new AAIEduHr_Options();
+
+	    // If options are entered, apply AAI Auth.
+	    if ($this->options->areValid) {
+	        $this->apply();
+
+		    add_action( 'admin_notices', function() {
+			    $class = 'notice notice-success';
+			    $message = 'AAI@EduHr Auth is applied, users need to use AAI@EduHr identities to log in.';
+			    $this->display_plugin_notice($message,$class);
+		    } );
+        }
+        else {
+
+	        add_action( 'admin_notices', function() {
+		        $class = 'notice notice-warning';
+		        $message = 'AAI@EduHr is not applied, please check your settings. ' . $this->options->validationMessage;
+		        $this->display_plugin_notice($message,$class);
+	        } );
+
+        }
+
+	}
+
+	protected function apply() {
 		// Add custom login execution.
 		add_action( 'login_form_login', array( $this, 'redirect_to_custom_login' ) );
 		//add_action( 'login_init', array( $this, 'redirect_to_custom_login' ) );
@@ -34,14 +64,7 @@ class AAIEduHr_Auth {
 		remove_filter( 'authenticate', 'wp_authenticate_username_password');
 		remove_filter( 'authenticate', 'wp_authenticate_email_password');
 		remove_filter( 'authenticate', 'wp_authenticate_spam_check');
-
-		// Add settings page
-		add_action( 'admin_menu', [$this, 'aaieduhr_auth_add_admin_menu'] );
-		add_action( 'admin_init', [$this, 'aaieduhr_auth_settings_init'] );
-
-		// Add link to settings
-		add_filter( 'plugin_action_links', array( $this, 'modify_plugin_action_links' ), 10, 2 );
-	}
+    }
 
 	/**
 	 * Plugin activation hook.
@@ -51,132 +74,9 @@ class AAIEduHr_Auth {
 	}
 
 	/**
-	 * Add Settings link to plugins area
-	 *
-	 * @since bbPress (r2737)
-	 *
-	 * @param array $links Links array in which we would prepend our link
-	 * @param string $file Current plugin basename
-	 * @return array Processed links
-	 */
-	public static function modify_plugin_action_links( $links, $file )
-	{
-		// New links to merge into existing links
-		$new_links = array();
-
-		// Settings page link
-		if ( current_user_can( 'manage_options' ) ) {
-			$new_links['settings'] = '<a href="' . esc_url( add_query_arg( array( 'page' => 'aaieduhr_auth'), admin_url('options-general.php'))) . '">' . esc_html__( 'Settings', 'aaieduhr_auth' ) . '</a>';
-		}
-
-		// Add a few links to the existing links array
-		return array_merge( $links, $new_links );
-	}
-
-	public function aaieduhr_auth_add_admin_menu(  ) {
-
-		add_options_page( 'AAIEduHr Auth', 'AAIEduHr Auth', 'manage_options', 'aaieduhr_auth', array( $this, 'aaieduhr_auth_options_page') );
-
-	}
-
-	public function aaieduhr_auth_settings_init(  ) {
-
-		register_setting( 'pluginPage', 'aaieduhr_auth_settings' );
-
-		add_settings_section(
-			'aaieduhr_auth_pluginPage_section',
-			__( 'You need to have SimpleSamlPHP already configured...', 'aaieduhr_auth' ),
-			array( $this, 'aaieduhr_auth_settings_section_callback'),
-			'pluginPage'
-		);
-
-		add_settings_field(
-			'aaieduhr_auth_text_field_0',
-			__( 'Settings field description', 'aaieduhr_auth' ),
-			array( $this, 'aaieduhr_auth_text_field_0_render'),
-			'pluginPage',
-			'aaieduhr_auth_pluginPage_section'
-		);
-
-		add_settings_field(
-			'aaieduhr_auth_text_field_1',
-			__( 'Settings field description', 'aaieduhr_auth' ),
-			array( $this, 'aaieduhr_auth_text_field_1_render'),
-			'pluginPage',
-			'aaieduhr_auth_pluginPage_section'
-		);
-
-		add_settings_field(
-			'aaieduhr_auth_checkbox_field_2',
-			__( 'Settings field description', 'aaieduhr_auth' ),
-			array( $this, 'aaieduhr_auth_checkbox_field_2_render'),
-			'pluginPage',
-			'aaieduhr_auth_pluginPage_section'
-		);
-
-	}
-
-	public function aaieduhr_auth_text_field_0_render(  ) {
-
-		$options = get_option( 'aaieduhr_auth_settings' );
-		?>
-		<input type='text' name='aaieduhr_auth_settings[aaieduhr_auth_text_field_0]' value='<?php echo $options['aaieduhr_auth_text_field_0']; ?>'>
-		<?php
-
-	}
-
-
-	public function aaieduhr_auth_text_field_1_render(  ) {
-
-		$options = get_option( 'aaieduhr_auth_settings' );
-		?>
-		<input type='text' name='aaieduhr_auth_settings[aaieduhr_auth_text_field_1]' value='<?php echo $options['aaieduhr_auth_text_field_1']; ?>'>
-		<?php
-
-	}
-
-
-	 public function aaieduhr_auth_checkbox_field_2_render(  ) {
-
-		$options = get_option( 'aaieduhr_auth_settings' );
-		?>
-		<input type='checkbox' name='aaieduhr_auth_settings[aaieduhr_auth_checkbox_field_2]' <?php checked( isset($options['aaieduhr_auth_checkbox_field_2']), 1 ); ?> value='1'>
-		<?php
-
-	}
-
-
-	public function aaieduhr_auth_settings_section_callback(  ) {
-
-		echo __( 'test', 'aaieduhr_auth' );
-
-	}
-
-
-	public function aaieduhr_auth_options_page(  ) {
-
-		?>
-		<form action='options.php' method='post'>
-
-			<h1>AAIEduHr Auth</h1>
-
-			<?php
-			settings_fields( 'pluginPage' );
-			do_settings_sections( 'pluginPage' );
-			submit_button();
-			?>
-
-		</form>
-		<?php
-
-	}
-
-	/**
 	 * Notice to let admins know that AAI@EduHr authentication is active.
 	 */
-	public function display_plugin_notice() {
-		$class = 'notice notice-warning';
-		$message = 'AAI@EduHr plugin is activated. Users need to use AAI@EduHr identities to log in.';
+	public function display_plugin_notice($message, $class) {
 
 		printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
 	}
@@ -273,4 +173,4 @@ $aaieduhr_auth = new AAIEduHr_Auth();
 // Register the plugin activation hook.
 register_activation_hook( __FILE__, array( $aaieduhr_auth, 'plugin_activated' ) );
 
-add_action( 'admin_notices', array( $aaieduhr_auth, 'display_plugin_notice') );
+
