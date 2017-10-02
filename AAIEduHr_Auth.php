@@ -1,5 +1,7 @@
 <?php
 /**
+ * https://code.tutsplus.com/tutorials/build-a-custom-wordpress-user-flow-part-1-replace-the-login-page--cms-23627
+ *
  * User: Marko Ivančić marko.ivancic@srce.hr
  * Date: 7/27/2017
  * Time: 3:16 PM
@@ -16,17 +18,21 @@
 // TODO mivanci Napravi još i ovo:
 // Napravi readme: https://generatewp.com/plugin-readme/
 // Uskladi ime direktorija s nazivom plugina.
+// Prikaži poruku o prijavi na naslovnoj stranici.
 
 require('AAIEduHr_Options.php');
 
 class AAIEduHr_Auth {
-
-	// Path to the SSP package.
-	protected $ssp_path = 'E:/projects/simplesamlphp/www/_include.php';
-
+	/**
+     * Instance which ensures that valid options are set.
+	 * @var AAIEduHr_Options
+	 */
 	protected $options;
 
 	public function __construct() {
+
+
+		//add_filter( 'the_content', [$this, 'my_the_post_action'] );
 
 	    $this->options = new AAIEduHr_Options();
 
@@ -50,6 +56,70 @@ class AAIEduHr_Auth {
 
         }
 
+		add_shortcode( 'custom-login-form', array( $this, 'render_login_form' ) );
+
+	}
+
+	/**
+	 * A shortcode for rendering the login form.
+	 *
+	 * @param  array   $attributes  Shortcode attributes.
+	 * @param  string  $content     The text content for shortcode. Not used.
+	 *
+	 * @return string  The shortcode output
+	 */
+	public function render_login_form( $attributes, $content = null ) {
+		// Parse shortcode attributes
+		$default_attributes = array( 'show_title' => false );
+		$attributes = shortcode_atts( $default_attributes, $attributes );
+		$show_title = $attributes['show_title'];
+
+		if ( is_user_logged_in() ) {
+			return __( 'You are already signed in.', 'personalize-login' );
+		}
+
+		// Pass the redirect parameter to the WordPress login functionality: by default,
+		// don't specify a redirect, but if a valid redirect URL has been passed as
+		// request parameter, use it.
+		$attributes['redirect'] = '';
+		if ( isset( $_REQUEST['redirect_to'] ) ) {
+			$attributes['redirect'] = wp_validate_redirect( $_REQUEST['redirect_to'], $attributes['redirect'] );
+		}
+
+		// Render the login form using an external template
+		return $this->get_template_html( 'login_form', $attributes );
+	}
+
+	/**
+	 * Renders the contents of the given template to a string and returns it.
+	 *
+	 * @param string $template_name The name of the template to render (without .php)
+	 * @param array  $attributes    The PHP variables for the template
+	 *
+	 * @return string               The contents of the template.
+	 */
+	private function get_template_html( $template_name, $attributes = null ) {
+		if ( ! $attributes ) {
+			$attributes = array();
+		}
+
+		ob_start();
+
+		do_action( 'personalize_login_before_' . $template_name );
+
+		require( 'templates/' . $template_name . '.php');
+
+		do_action( 'personalize_login_after_' . $template_name );
+
+		$html = ob_get_contents();
+		ob_end_clean();
+
+		return $html;
+	}
+
+	public function my_the_post_action( $post_object ) {
+		// var_dump($post_object); die();
+        return $post_object = '<p>Test</p>';
 	}
 
 	protected function apply() {
@@ -71,6 +141,36 @@ class AAIEduHr_Auth {
 	 */
 	public function plugin_activated() {
 		// Code to execute when plugin is activated.
+		// Information needed for creating the plugin's pages
+		$page_definitions = array(
+			'aaieduhr-login' => array(
+				'title' => __( 'Sign In', 'personalize-login' ),
+				'content' => '[custom-login-form]'
+			),
+			'aaieduhr-account' => array(
+				'title' => __( 'Your Account', 'personalize-login' ),
+				'content' => '[account-info]'
+			),
+		);
+
+		foreach ( $page_definitions as $slug => $page ) {
+			// Check that the page doesn't exist already
+			$query = new WP_Query( 'pagename=' . $slug );
+			if ( ! $query->have_posts() ) {
+				// Add the page using the data from the array above
+				wp_insert_post(
+					array(
+						'post_content'   => $page['content'],
+						'post_name'      => $slug,
+						'post_title'     => $page['title'],
+						'post_status'    => 'publish',
+						'post_type'      => 'page',
+						'ping_status'    => 'closed',
+						'comment_status' => 'closed',
+					)
+				);
+			}
+		}
 	}
 
 	/**
@@ -98,9 +198,9 @@ class AAIEduHr_Auth {
 			$login_url = add_query_arg( 'redirect_to', $redirect_to, $login_url );
 		}
 
-		require_once($this->ssp_path);
+		require_once($this->options->get()['simplesamlphp_path']);
 
-		$ssp = new SimpleSAML_Auth_Simple('fedlab-sp');
+		$ssp = new SimpleSAML_Auth_Simple($this->options->get()['service_type']);
 
 		if ( ! $ssp->isAuthenticated() ) {
 			$ssp->requireAuth();
@@ -108,7 +208,11 @@ class AAIEduHr_Auth {
 			$attributes = $ssp->getAttributes();
 		}
 
+		// var_dump($attributes); die();
+
 		$email = 'marko.ivancic@srce.hr';
+
+        // $email = $attributes['hrEduPersonUniqueID'][0];
 
 		$user = get_user_by( 'email', $email );
 
@@ -133,9 +237,9 @@ class AAIEduHr_Auth {
 	 * Redirect to custom login page after the user has been logged out.
 	 */
 	public function redirect_after_logout() {
-		require_once($this->ssp_path);
+		require_once($this->options->get()['simplesamlphp_path']);
 
-		$ssp = new SimpleSAML_Auth_Simple('fedlab-sp');
+		$ssp = new SimpleSAML_Auth_Simple($this->options->get()['service_type']);
 
 		if ($ssp->isAuthenticated() ) {
 			$ssp->logout( home_url() );
