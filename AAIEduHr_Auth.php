@@ -56,7 +56,7 @@ class AAIEduHr_Auth {
 
         }
 
-		add_shortcode( 'custom-login-form', array( $this, 'render_login_form' ) );
+		add_shortcode( 'auth-message', array( $this, 'render_auth_message' ) );
 
 	}
 
@@ -68,15 +68,41 @@ class AAIEduHr_Auth {
 	 *
 	 * @return string  The shortcode output
 	 */
-	public function render_login_form( $attributes, $content = null ) {
+	public function render_auth_message( $attributes, $content = null ) {
 		// Parse shortcode attributes
-		$default_attributes = array( 'show_title' => false );
-		$attributes = shortcode_atts( $default_attributes, $attributes );
-		$show_title = $attributes['show_title'];
+		$default_attributes = array(
+			'show_title' => true,
+			'auth_message' => 'No message'
+		);
 
-		if ( is_user_logged_in() ) {
-			return __( 'You are already signed in.', 'personalize-login' );
+		$attributes = shortcode_atts( $default_attributes, $attributes );
+
+		// Auth message
+		if (isset($_GET['type'])) {
+			switch ($_GET['type']) {
+				case 'login':
+                    $attributes['auth_message'] = __('Login successful.', 'aaieduhr');
+                    break;
+				case 'logout':
+                    $attributes['auth_message'] = __('Logout successful.', 'aaieduhr');
+					break;
+				case 'error':
+                    $attributes['auth_message'] = __('Oups, there was an error.', 'aaieduhr');
+					break;
+
+			}
 		}
+
+		// Error messages
+		$errors = array();
+		if ( isset( $_REQUEST['errors'] ) ) {
+			$error_codes = explode( ',', $_REQUEST['errors'] );
+
+			foreach ( $error_codes as $code ) {
+				$errors[] = $this->get_error_message( $code );
+			}
+		}
+		$attributes['errors'] = $errors;
 
 		// Pass the redirect parameter to the WordPress login functionality: by default,
 		// don't specify a redirect, but if a valid redirect URL has been passed as
@@ -87,7 +113,44 @@ class AAIEduHr_Auth {
 		}
 
 		// Render the login form using an external template
-		return $this->get_template_html( 'login_form', $attributes );
+		return $this->get_template_html( 'auth_message', $attributes );
+	}
+
+	/**
+	 * Finds and returns a matching error message for the given error code.
+	 *
+	 * @param string $error_code    The error code to look up.
+	 *
+	 * @return string               An error message.
+	 */
+	private function get_error_message( $error_code ) {
+		switch ( $error_code ) {
+			case 'empty_aai':
+				return __( 'No AAI', 'personalize-login' );
+			case 'empty_username':
+				return __( 'You do have an email address, right?', 'personalize-login' );
+
+			case 'empty_password':
+				return __( 'You need to enter a password to login.', 'personalize-login' );
+
+			case 'invalid_username':
+				return __(
+					"We don't have any users with that email address. Maybe you used a different one when signing up?",
+					'personalize-login'
+				);
+
+			case 'incorrect_password':
+				$err = __(
+					"The password you entered wasn't quite right. <a href='%s'>Did you forget your password</a>?",
+					'personalize-login'
+				);
+				return sprintf( $err, wp_lostpassword_url() );
+
+			default:
+				break;
+		}
+
+		return __( 'An unknown error occurred. Please try again later.', 'personalize-login' );
 	}
 
 	/**
@@ -105,11 +168,11 @@ class AAIEduHr_Auth {
 
 		ob_start();
 
-		do_action( 'personalize_login_before_' . $template_name );
+		do_action( 'personalize_auth_message_' . $template_name );
 
 		require( 'templates/' . $template_name . '.php');
 
-		do_action( 'personalize_login_after_' . $template_name );
+		do_action( 'personalize_auth_message_' . $template_name );
 
 		$html = ob_get_contents();
 		ob_end_clean();
@@ -141,14 +204,15 @@ class AAIEduHr_Auth {
 	 */
 	public function plugin_activated() {
 		// Code to execute when plugin is activated.
+
 		// Information needed for creating the plugin's pages
 		$page_definitions = array(
-			'aaieduhr-login' => array(
-				'title' => __( 'Sign In', 'personalize-login' ),
-				'content' => '[custom-login-form]'
+			'aaieduhr-auth' => array(
+				'title' => __( 'AAIEduHr Auth', 'aaieduhr' ),
+				'content' => '[auth-message]'
 			),
 			'aaieduhr-account' => array(
-				'title' => __( 'Your Account', 'personalize-login' ),
+				'title' => __( 'Your Account', 'aaieduhr' ),
 				'content' => '[account-info]'
 			),
 		);
@@ -242,7 +306,7 @@ class AAIEduHr_Auth {
 		$ssp = new SimpleSAML_Auth_Simple($this->options->get()['service_type']);
 
 		if ($ssp->isAuthenticated() ) {
-			$ssp->logout( home_url() );
+			$ssp->logout( add_query_arg('type', 'logout', home_url('aaieduhr-auth') ) );
 		}
 
 		exit;
@@ -263,7 +327,7 @@ class AAIEduHr_Auth {
 				wp_redirect( admin_url() );
 			}
 		} else {
-			wp_redirect( home_url() );
+			wp_redirect(  add_query_arg('type', 'login', home_url('aaieduhr-auth') ) );
 		}
 	}
 
