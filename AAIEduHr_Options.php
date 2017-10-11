@@ -42,12 +42,12 @@ class AAIEduHr_Options {
 
         // Service type must be valid.
         $validServiceTypes = ['fedlab-sp', 'default-sp'];
-        if (! in_array($this->data['service_type'], $validServiceTypes)) {
+        if ( ! in_array($this->data['service_type'], $validServiceTypes)) {
             $this->validationMessage = 'Service type is not valid.';
             return;
         }
 
-        if (! isset($this->data['should_create_new_users'])) {
+        if ( ! isset($this->data['should_create_new_users'])) {
 	        $this->data['should_create_new_users'] = 0;
         }
 
@@ -121,12 +121,10 @@ class AAIEduHr_Options {
 	}
 
 	public function simplesamlphp_path_render(  ) {
-
-		$options = get_option( 'aaieduhr_auth_settings' );
-		?>
+        ?>
 		<input type='text'
 		       class="regular-text"
-		       name='aaieduhr_auth_settings[simplesamlphp_path]' value='<?php echo $options['simplesamlphp_path']; ?>'>
+		       name='aaieduhr_auth_settings[simplesamlphp_path]' value='<?php echo $this->data['simplesamlphp_path']; ?>'>
 
 		<p class="description">For example: /var/www/simplesamlphp/lib/_autoload.php</p>
 		<?php
@@ -135,10 +133,8 @@ class AAIEduHr_Options {
 
 
 	public function service_type_render(  ) {
-
-		$options = get_option( 'aaieduhr_auth_settings' );
 		?>
-		<input type='text' name='aaieduhr_auth_settings[service_type]' value='<?php echo $options['service_type']; ?>'>
+		<input type='text' name='aaieduhr_auth_settings[service_type]' value='<?php echo $this->data['service_type']; ?>'>
 		<p class="description">Valid options are: fedlab-sp or default-sp</p>
 		<?php
 
@@ -146,10 +142,10 @@ class AAIEduHr_Options {
 
 
 	public function should_create_new_users_render(  ) {
-
-		$options = get_option( 'aaieduhr_auth_settings' );
 		?>
-		<input type='checkbox' name='aaieduhr_auth_settings[should_create_new_users]' <?php checked( isset($options['should_create_new_users']), 1 ); ?> value='1'>
+		<input type='checkbox' name='aaieduhr_auth_settings[should_create_new_users]'
+            <?php checked( isset($this->data['should_create_new_users']) && $this->data['should_create_new_users'] == '1'); ?>
+               value='1'>
 		<?php
 
 	}

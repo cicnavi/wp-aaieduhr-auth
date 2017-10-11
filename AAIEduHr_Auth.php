@@ -1,6 +1,5 @@
 <?php
 /**
- * https://code.tutsplus.com/tutorials/build-a-custom-wordpress-user-flow-part-1-replace-the-login-page--cms-23627
  *
  * User: Marko Ivančić marko.ivancic@srce.hr
  * Date: 7/27/2017
@@ -10,7 +9,7 @@
  * Description:       A plugin that replaces the WordPress login with SimpleSamlPHP AAI@Edu authentication.
  * Version:           0.0.1
  * Author:            Marko Ivančić marko.ivancic@srce.hr
- * Author URI:				http://markoivancic.from.hr/
+ * Author URI:		  http://markoivancic.from.hr/
  * License:           GPL-2.0+
  * Text Domain:       aaieduhr_auth
  */
@@ -18,7 +17,7 @@
 // TODO mivanci Napravi još i ovo:
 // Napravi readme: https://generatewp.com/plugin-readme/
 // Uskladi ime direktorija s nazivom plugina.
-// Prikaži poruku o prijavi na naslovnoj stranici.
+// Kreiranje korisnika
 
 require('AAIEduHr_Options.php');
 
@@ -31,13 +30,11 @@ class AAIEduHr_Auth {
 
 	public function __construct() {
 
-
-		//add_filter( 'the_content', [$this, 'my_the_post_action'] );
-
 	    $this->options = new AAIEduHr_Options();
 
 	    // If options are entered, apply AAI Auth.
 	    if ($this->options->areValid) {
+
 	        $this->apply();
 
 		    add_action( 'admin_notices', function() {
@@ -59,6 +56,7 @@ class AAIEduHr_Auth {
 		add_shortcode( 'auth-message', array( $this, 'render_auth_message' ) );
 
 	}
+
 
 	/**
 	 * A shortcode for rendering the login form.
@@ -117,6 +115,145 @@ class AAIEduHr_Auth {
 	}
 
 	/**
+	 * Redirect the user to the custom login page instead of wp-login.php.
+	 */
+	public function redirect_to_custom_login() {
+
+		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : null;
+
+		if ( is_user_logged_in() ) {
+			$this->redirect_logged_in_user( $redirect_to );
+			exit;
+		}
+
+		$login_url = home_url( '/' );
+
+		if ( ! empty( $redirect_to ) ) {
+			$login_url = add_query_arg( 'redirect_to', $redirect_to, $login_url );
+		}
+
+		require_once($this->options->get()['simplesamlphp_path']);
+
+		$ssp = new SimpleSAML_Auth_Simple($this->options->get()['service_type']);
+
+		if ( ! $ssp->isAuthenticated() ) {
+			$ssp->requireAuth();
+		} else {
+			$attributes = $ssp->getAttributes();
+		}
+
+		if ( ! isset($attributes['hrEduPersonUniqueID'])) {
+			wp_redirect( home_url('aaieduhr-auth') . '?type=error&errors=no_unique_id' );
+			exit;
+		}
+
+		$username = $attributes['hrEduPersonUniqueID'][0];
+
+		// We will use AAI@EduHR ID as username.
+		$user = get_user_by( 'login', $username );
+
+		if ( $user )
+		{
+			// User exists, so we can set user on current request.
+			wp_set_current_user($user->ID);
+		}
+		else {
+			if ( ! $this->options->get()['should_create_new_users']) {
+				wp_redirect( home_url('aaieduhr-auth') . '?type=error&errors=user_creation_disabled' );
+				exit;
+			}
+
+			// Create new user.
+			if ( isset( $attributes['mail'] ) ) {
+				$email = $attributes['mail'][0];
+			} else {
+				$email = $attributes['hrEduPersonUniqueID'][0];
+			}
+
+			$first_name = '';
+			if( isset( $attributes['givenName'] ) ){
+				$first_name = sanitize_text_field($attributes['givenName'][0]);
+			}
+			$last_name = '';
+			if( isset( $attributes['sn'] ) ){
+				$last_name = sanitize_text_field($attributes['sn'][0]);
+			}
+
+			// If successfull, we will get user ID, otherwise WP_Error instance.
+			$user_id = $this->register_user($username, $email, $first_name, $last_name);
+
+			// If there was an error creating the user, redirect and show errors.
+			if ( is_wp_error($user_id) ) {
+				// Parse errors into a string and append as parameter to redirect
+				$errors = join( ',', $user_id->get_error_codes() );
+				$redirect_url = add_query_arg( [
+					'type' => 'error',
+					'errors' => $errors
+				], home_url('aaieduhr-auth'));
+
+				wp_redirect($redirect_url);
+				exit;
+			}
+
+			// Set user for current request, and also get the user instance.
+			$user = wp_set_current_user($user_id);
+		}
+
+		// https://gist.github.com/cliffordp/e8d1d9f732328ba360ad
+		// https://codex.wordpress.org/Function_Reference/wp_set_current_user
+		// Set auth cookie so user stays authenticated.
+		wp_set_auth_cookie($user->ID);
+		do_action('wp_login', $user->user_login);
+
+		$this->redirect_logged_in_user();
+
+		// We end the execution using an exit command because otherwise, the execution will continue
+		// with the rest of the actions in wp-login.php
+		exit;
+	}
+
+	/**
+	 * Validates and then completes the new user signup process if all went well.
+	 *
+	 * @param string $username      The new user's username (login)
+	 * @param string $email         The new user's email address
+	 * @param string $first_name    The new user's first name
+	 * @param string $last_name     The new user's last name
+	 *
+	 * @return int|WP_Error         The id of the user that was created, or error if failed.
+	 */
+	private function register_user($username, $email, $first_name = '', $last_name = '') {
+
+		$errors = new WP_Error();
+
+		if ( username_exists( $username ) ) {
+			$errors->add( 'username_exists', $this->get_error_message( 'username_exists') );
+			return $errors;
+		}
+
+		if ( ! is_email( $email ) ) {
+			$errors->add( 'email_invalid', $this->get_error_message( 'email_invalid' ) );
+			return $errors;
+		}
+
+		// Generate the password
+		$password = wp_generate_password( 12, false );
+
+		$user_data = array(
+			'user_login'    => $username,
+			'user_email'    => $email,
+			'user_pass'     => $password,
+			'first_name'    => $first_name,
+			'last_name'     => $last_name,
+			'nickname'      => $first_name,
+		);
+
+		$user_id = wp_insert_user( $user_data );
+
+		return $user_id;
+	}
+
+	/**
 	 * Finds and returns a matching error message for the given error code.
 	 *
 	 * @param string $error_code    The error code to look up.
@@ -125,26 +262,19 @@ class AAIEduHr_Auth {
 	 */
 	private function get_error_message( $error_code ) {
 		switch ( $error_code ) {
-			case 'empty_aai':
-				return __( 'No AAI', 'personalize-login' );
-			case 'empty_username':
-				return __( 'You do have an email address, right?', 'personalize-login' );
 
-			case 'empty_password':
-				return __( 'You need to enter a password to login.', 'personalize-login' );
+			case 'no_unique_id':
+				return __( 'AAI@EduHr service did not provide unique user ID.', 'aaieduhr' );
 
-			case 'invalid_username':
-				return __(
-					"We don't have any users with that email address. Maybe you used a different one when signing up?",
-					'personalize-login'
-				);
+			case 'user_creation_disabled':
+				return __( 'You were successfully authenticated using AAI@EduHr service, 
+					but your account is currently not allowed to enter (new user creation is disabled).', 'aaieduhr' );
 
-			case 'incorrect_password':
-				$err = __(
-					"The password you entered wasn't quite right. <a href='%s'>Did you forget your password</a>?",
-					'personalize-login'
-				);
-				return sprintf( $err, wp_lostpassword_url() );
+			case 'username_exists':
+				return __( 'Username is already taken.', 'aaieduhr' );
+
+			case 'email_invalid':
+				return __( 'Email is not valid.', 'aaieduhr' );
 
 			default:
 				break;
@@ -180,15 +310,9 @@ class AAIEduHr_Auth {
 		return $html;
 	}
 
-	public function my_the_post_action( $post_object ) {
-		// var_dump($post_object); die();
-        return $post_object = '<p>Test</p>';
-	}
-
 	protected function apply() {
 		// Add custom login execution.
 		add_action( 'login_form_login', array( $this, 'redirect_to_custom_login' ) );
-		//add_action( 'login_init', array( $this, 'redirect_to_custom_login' ) );
 
 		// Hook to logout
 		add_action( 'wp_logout', array( $this, 'redirect_after_logout' ) );
@@ -243,58 +367,6 @@ class AAIEduHr_Auth {
 	public function display_plugin_notice($message, $class) {
 
 		printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
-	}
-
-	/**
-	 * Redirect the user to the custom login page instead of wp-login.php.
-	 */
-	public function redirect_to_custom_login() {
-		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : null;
-
-		if ( is_user_logged_in() ) {
-			$this->redirect_logged_in_user( $redirect_to );
-			exit;
-		}
-
-		$login_url = home_url( '/' );
-
-		if ( ! empty( $redirect_to ) ) {
-			$login_url = add_query_arg( 'redirect_to', $redirect_to, $login_url );
-		}
-
-		require_once($this->options->get()['simplesamlphp_path']);
-
-		$ssp = new SimpleSAML_Auth_Simple($this->options->get()['service_type']);
-
-		if ( ! $ssp->isAuthenticated() ) {
-			$ssp->requireAuth();
-		} else {
-			$attributes = $ssp->getAttributes();
-		}
-
-		// var_dump($attributes); die();
-
-		$email = 'marko.ivancic@srce.hr';
-
-        // $email = $attributes['hrEduPersonUniqueID'][0];
-
-		$user = get_user_by( 'email', $email );
-
-		if ( ! $user ) {
-			wp_redirect( home_url() );
-			return new WP_Error( 'broke', "I've fallen and can't get up" );
-			exit;
-		}
-		// https://gist.github.com/cliffordp/e8d1d9f732328ba360ad
-		wp_set_current_user($user->ID);
-		wp_set_auth_cookie($user->ID);
-		do_action('wp_login', $user->user_login);
-
-		$this->redirect_logged_in_user();
-
-		// We end the execution using an exit command because otherwise, the execution will continue
-		// with the rest of the actions in wp-login.php
-		exit;
 	}
 
 	/**
