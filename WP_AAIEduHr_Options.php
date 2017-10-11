@@ -6,7 +6,7 @@
  * Time: 13:54
  */
 
-class AAIEduHr_Options {
+class WPAAIEduHr_Options {
 
 	protected $data;
 
@@ -70,7 +70,7 @@ class AAIEduHr_Options {
 
 		// Settings page link
 		if ( current_user_can( 'manage_options' ) ) {
-			$new_links['settings'] = '<a href="' . esc_url( add_query_arg( array( 'page' => 'aaieduhr_auth'), admin_url('options-general.php'))) . '">' . esc_html__( 'Settings', 'aaieduhr_auth' ) . '</a>';
+			$new_links['settings'] = '<a href="' . esc_url( add_query_arg( array( 'page' => 'WPAAIEduHr_Auth' ), admin_url('options-general.php'))) . '">' . esc_html__( 'Settings', 'WPAAIEduHr_Auth' ) . '</a>';
 		}
 
 		// Add a few links to the existing links array
@@ -79,7 +79,7 @@ class AAIEduHr_Options {
 
 	public function aaieduhr_auth_add_admin_menu(  ) {
 
-		add_options_page( 'AAI@EduHr Auth', 'AAI@EduHr Auth', 'manage_options', 'aaieduhr_auth', array( $this, 'aaieduhr_auth_options_page') );
+		add_options_page( 'AAI@EduHr Auth', 'AAI@EduHr Auth', 'manage_options', 'WPAAIEduHr_Auth', array( $this, 'aaieduhr_auth_options_page') );
 
 	}
 
@@ -89,14 +89,14 @@ class AAIEduHr_Options {
 
 		add_settings_section(
 			'aaieduhr_auth_pluginPage_section',
-			__( 'Main configuration', 'aaieduhr_auth' ),
+			__( 'Main configuration', 'WPAAIEduHr_Auth' ),
 			array( $this, 'aaieduhr_auth_settings_section_callback'),
 			'pluginPage'
 		);
 
 		add_settings_field(
 			'simplesamlphp_path',
-			__( 'Path to simpleSAMLphp', 'aaieduhr_auth' ),
+			__( 'Path to simpleSAMLphp', 'WPAAIEduHr_Auth' ),
 			array( $this, 'simplesamlphp_path_render'),
 			'pluginPage',
 			'aaieduhr_auth_pluginPage_section'
@@ -104,7 +104,7 @@ class AAIEduHr_Options {
 
 		add_settings_field(
 			'service_type',
-			__( 'Service type', 'aaieduhr_auth' ),
+			__( 'Service type', 'WPAAIEduHr_Auth' ),
 			array( $this, 'service_type_render'),
 			'pluginPage',
 			'aaieduhr_auth_pluginPage_section'
@@ -112,7 +112,7 @@ class AAIEduHr_Options {
 
 		add_settings_field(
 			'should_create_new_users',
-			__( 'Create a user if it doesn\'t exist', 'aaieduhr_auth' ),
+			__( 'Create a user if it doesn\'t exist', 'WPAAIEduHr_Auth' ),
 			array( $this, 'should_create_new_users_render'),
 			'pluginPage',
 			'aaieduhr_auth_pluginPage_section'
@@ -158,7 +158,7 @@ class AAIEduHr_Options {
                     official AAI@EduHr webpage</a>
                     for more information.';
 
-		echo __( $text, 'aaieduhr_auth' );
+		echo __( $text, 'WPAAIEduHr_Auth' );
 
 	}
 

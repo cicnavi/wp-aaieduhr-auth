@@ -6,12 +6,12 @@
  * Time: 3:16 PM
  *
  * Plugin Name:       AAI@EduHr Auth
- * Description:       A plugin that replaces the WordPress login with SimpleSamlPHP AAI@Edu authentication.
+ * Description:       Wordpress plugin that replaces the default authentication with SimpleSamlPHP AAI@EduHr authentication.
  * Version:           0.0.1
  * Author:            Marko Ivančić marko.ivancic@srce.hr
  * Author URI:		  http://markoivancic.from.hr/
  * License:           GPL-2.0+
- * Text Domain:       aaieduhr_auth
+ * Text Domain:       wp-aaieduhr-auth
  */
 
 // TODO mivanci Napravi još i ovo:
@@ -19,18 +19,18 @@
 // Uskladi ime direktorija s nazivom plugina.
 // Kreiranje korisnika
 
-require('AAIEduHr_Options.php');
+require( 'WP_AAIEduHr_Options.php' );
 
-class AAIEduHr_Auth {
+class WPAAIEduHr_Auth {
 	/**
      * Instance which ensures that valid options are set.
-	 * @var AAIEduHr_Options
+	 * @var WPAAIEduHr_Options
 	 */
 	protected $options;
 
 	public function __construct() {
 
-	    $this->options = new AAIEduHr_Options();
+	    $this->options = new WPAAIEduHr_Options();
 
 	    // If options are entered, apply AAI Auth.
 	    if ($this->options->areValid) {
@@ -408,7 +408,7 @@ class AAIEduHr_Auth {
 // Ensure that the plugin is run under Wordpress.
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 
-$aaieduhr_auth = new AAIEduHr_Auth();
+$aaieduhr_auth = new WPAAIEduHr_Auth();
 
 // Register the plugin activation hook.
 register_activation_hook( __FILE__, array( $aaieduhr_auth, 'plugin_activated' ) );
