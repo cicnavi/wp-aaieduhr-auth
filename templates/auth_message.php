@@ -1,6 +1,6 @@
 <div class="login-message-container">
 	<?php if ( $attributes['show_title'] ) : ?>
-		<h2><?php _e( 'AAI@EduHr Message', 'aaieduhr' ); ?></h2>
+		<h2><?php _e( 'AAI@EduHr Message', 'wp-aaieduhr-auth' ); ?></h2>
 	<?php endif; ?>
 
     <p class="">
@@ -10,7 +10,6 @@
     <!-- Show errors if there are any -->
 	<?php if ( count( $attributes['errors'] ) > 0 ) : ?>
         <p>
-        <?php _e('Errors:', 'aaieduhr'); ?>
             <ul>
             <?php foreach ( $attributes['errors'] as $error ) : ?>
                 <li class="login-error">
@@ -22,6 +21,6 @@
 	<?php endif; ?>
 
     <p>
-        <a href="<?php echo home_url() ?>"><?php _e('Go to homepage', 'aaieduhr');?></a>
+        <a href="<?php echo home_url() ?>"><?php _e('Go to homepage', 'wp-aaieduhr-auth');?></a>
     </p>
 </div>

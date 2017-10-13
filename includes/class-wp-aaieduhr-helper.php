@@ -20,7 +20,7 @@ class WP_AAIEduHr_Helper {
 			case 'logout':
 				return __( 'Logout successful.', 'wp-aaieduhr-auth' );
 			case 'error':
-				return __( 'Oops, there was an error.', 'wp-aaieduhr-auth' );
+				return __( 'Oops, there was an error:', 'wp-aaieduhr-auth' );
 			default:
 				return __( 'This message is not yet defined.', 'wp-aaieduhr-auth' );
 				break;
@@ -43,7 +43,7 @@ class WP_AAIEduHr_Helper {
 
 			case 'user_creation_disabled':
 				return __( 'You were successfully authenticated using AAI@EduHr service, 
-					but your account is currently not allowed to enter (new user creation is disabled).', 'wp-aaieduhr-auth' );
+					however your account is currently not allowed to enter (new user creation is disabled).', 'wp-aaieduhr-auth' );
 
 			case 'username_exists':
 				return __( 'Username is already taken.', 'wp-aaieduhr-auth' );
@@ -53,6 +53,10 @@ class WP_AAIEduHr_Helper {
 
 			case 'existing_user_email':
 				return __( 'Email is already used.', 'wp-aaieduhr-auth' );
+
+			case 'realm_not_allowed':
+				return __( 'You were successfully authenticated using AAI@EduHr service, 
+					however your realm is currently not allowed.', 'wp-aaieduhr-auth' );
 
 			default:
 				break;

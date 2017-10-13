@@ -48,8 +48,9 @@ class WP_AAIEduHr_Core {
 			// Options are not valid, so show notice in admin area that something is not right.
 			add_action( 'admin_notices', function () {
 				$class   = 'notice notice-warning';
-				$message = __( 'AAI@EduHr authentication is not applied. Please check AAI@EduHR Auth settings. ', 'wp-aaieduhr-auth' )
+				$message = __( 'AAI@EduHr authentication is not applied. Please check AAI@EduHR Auth settings.', 'wp-aaieduhr-auth' )
 				           . $this->options->validation_message;
+
 				$this->display_plugin_notice( $message, $class );
 			} );
 
@@ -109,6 +110,13 @@ class WP_AAIEduHr_Core {
 			exit;
 		}
 
+		// Check if only specific realms are allowed.
+		if ( ! empty( $this->options->get()['allowed_realms'] ) ) {
+			// Realms are not empty, so we have to check if user comes from the allowed realms.
+			$this->check_if_user_realm_is_allowed( $attributes['hrEduPersonUniqueID'][0] );
+		}
+
+		// Realms are ok, we can continue.
 		// Try to get the user, so we can check if it already exists.
 		$user = get_user_by( 'login', $attributes['hrEduPersonUniqueID'][0] );
 
@@ -310,6 +318,21 @@ class WP_AAIEduHr_Core {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Check if the user is from the allowed realm.
+	 *
+	 * @param $aaieduhr_id
+	 */
+	protected function check_if_user_realm_is_allowed($aaieduhr_id) {
+		$user_realm = substr( $aaieduhr_id, strpos( $aaieduhr_id, '@' ) + 1 );
+
+		// If user is not in the list, return and show appropriate message.
+		if ( ! in_array($user_realm, $this->options->get()['allowed_realms'] ) ) {
+			wp_redirect( home_url( 'aaieduhr-auth' ) . '?code=error&errors=realm_not_allowed' );
+			exit;
+		}
 	}
 
 }

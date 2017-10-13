@@ -23,16 +23,22 @@ class WP_AAIEduHr_Options {
      *
 	 * @var bool
 	 */
-	public $are_valid = false;
+	public $are_valid = true;
 
 	/**
      * Message about option validity.
      *
 	 * @var string
 	 */
-	public $validation_message = '';
+	public $validation_message = ' >>';
 
+	/**
+	 * WP_AAIEduHr_Options constructor.
+	 */
 	public function __construct() {
+
+
+
 
 		// Initialize plugin settings
 		add_action( 'admin_init', [$this, 'initialize_settings'] );
@@ -93,6 +99,14 @@ class WP_AAIEduHr_Options {
 			'wp_aaieduhr_auth_plugin_settings_page_main_configuration'
 		);
 
+		add_settings_field(
+			'allowed_realms',
+			__( 'Allowed realms', 'wp-aaieduhr-auth' ),
+			array( $this, 'render_input_for_allowed_realms'),
+			'WP_AAIEduHr_Auth_Settings',
+			'wp_aaieduhr_auth_plugin_settings_page_main_configuration'
+		);
+
 	}
 
 	/**
@@ -113,27 +127,64 @@ class WP_AAIEduHr_Options {
 		?>
         <input type='text'
                class="regular-text"
-               name='wp_aaieduhr_auth_settings[simplesamlphp_path]' value='<?php echo $this->data['simplesamlphp_path']; ?>'>
+               name='wp_aaieduhr_auth_settings[simplesamlphp_path]'
+               value='<?php echo isset($this->data['simplesamlphp_path']) ? $this->data['simplesamlphp_path'] : ''; ?>'>
 
-        <p class="description">For example: /var/www/simplesamlphp/lib/_autoload.php</p>
+        <p class="description">
+	        <?php _e('For example: /var/www/simplesamlphp/lib/_autoload.php','wp-aaieduhr-auth'); ?>
+        </p>
 		<?php
 
 	}
 
 	public function render_input_for_service_type(  ) {
 		?>
-        <input type='text' name='wp_aaieduhr_auth_settings[service_type]' value='<?php echo $this->data['service_type']; ?>'>
-        <p class="description">Valid options are: fedlab-sp or default-sp</p>
+        <input type='text'
+               name='wp_aaieduhr_auth_settings[service_type]'
+               value='<?php echo isset($this->data['service_type']) ? $this->data['service_type'] : ''; ?>'>
+        <p class="description">
+           <?php _e('Valid options are: fedlab-sp or default-sp','wp-aaieduhr-auth'); ?>
+        </p>
 		<?php
-
 	}
 
 
 	public function render_input_for_should_create_new_users(  ) {
 		?>
         <input type='checkbox' name='wp_aaieduhr_auth_settings[should_create_new_users]'
-			<?php checked( isset($this->data['should_create_new_users']) && $this->data['should_create_new_users'] == '1'); ?>
+			    <?php
+                checked( isset($this->data['should_create_new_users']) && $this->data['should_create_new_users'] == '1');
+                ?>
                value='1'>
+        <p class="description">
+	        <?php
+	        $description = 'Check this option if you want to automatically create local users which are successfully authenticated trough AAI@EduHr. <br>
+                Uncheck it if you want to manually create local users which are then allowed to authenticate trough AAI@EduHr
+                (if you want to use standard WordPress user administration to allow only specific users). <br>';
+
+	            _e($description, 'wp-aaieduhr-auth');
+	        ?>
+
+        </p>
+		<?php
+
+	}
+
+	public function render_input_for_allowed_realms(  ) {
+		?>
+        <input type='text'
+               class="regular-text"
+               name='wp_aaieduhr_auth_settings[allowed_realms]'
+               value='<?php echo isset($this->data['allowed_realms']) ? implode(', ', $this->data['allowed_realms']) : ''; ?>'>
+        <p class="description">
+            <?php
+                $description = 'Leave empty if users from any realm are allowed to authenticate trough AAI@EduHr.<br>
+                    If you want to limit authentication to specific realms, enter comma separated list of realms. <br>
+                    For example, to limit authentication only to srce.hr and sfzg.hr realms, enter: srce.hr, sfzg.hr';
+
+                _e($description, 'wp-aaieduhr-auth');
+            ?>
+        </p>
 		<?php
 
 	}
@@ -170,16 +221,16 @@ class WP_AAIEduHr_Options {
 	protected function validate()
     {
         // simpleSAMLPhp path should be valid, file should exists.
-        if ( ! file_exists($this->data['simplesamlphp_path'])) {
-            $this->validation_message = __('Can not find simpleSAMLphp file.', 'wp-aaieduhr-auth');
-            return;
+        if ( ! isset($this->data['simplesamlphp_path']) || ! file_exists($this->data['simplesamlphp_path'])) {
+            $this->validation_message .= __(' Can not find simpleSAMLphp file.', 'wp-aaieduhr-auth');
+	        $this->are_valid = false;;
         }
 
         // Service type must be valid.
         $validServiceTypes = ['fedlab-sp', 'default-sp'];
-        if ( ! in_array($this->data['service_type'], $validServiceTypes)) {
-            $this->validation_message = __('Service type is not valid.', 'wp-aaieduhr-auth');
-            return;
+        if ( ! isset($this->data['service_type']) || ! in_array($this->data['service_type'], $validServiceTypes)) {
+            $this->validation_message .= __(' Service type is not valid.', 'wp-aaieduhr-auth');
+	        $this->are_valid = false;
         }
 
         // Simply ensure valid option for user creation.
@@ -190,7 +241,28 @@ class WP_AAIEduHr_Options {
 	        $this->data['should_create_new_users'] = 0;
         }
 
-        $this->are_valid = true;
+        // Resolve allowed realms.
+	    // First ensure that there arno no spaces, to be sure.
+	    if ( isset( $this->data['allowed_realms'] ) ) {
+		    $this->data['allowed_realms'] = trim($this->data['allowed_realms']);
+        }
+        else {
+	        $this->data['allowed_realms'] = '';
+        }
+        // Check to see if string is empty, and only then consider using specified realms.
+        if ( ! empty( $this->data['allowed_realms'] ) ) {
+
+	        // In case there are multiple realms separated by comma, get all realms.
+            $realms = [];
+	        foreach ( explode(',', $this->data['allowed_realms']) as $realm) {
+		        $realms[] = trim($realm);
+            }
+	        $this->data['allowed_realms'] = $realms;
+        }
+        else {
+            // All realms are allowed (string is empty), ensure that we have an empty array.
+	        $this->data['allowed_realms'] = [];
+        }
     }
 
 	/**
