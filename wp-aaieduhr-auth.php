@@ -12,11 +12,9 @@
  * Text Domain:       wp-aaieduhr-auth
  */
 
-// TODO mivanci Napravi još i ovo:
-// Napravi readme: https://generatewp.com/plugin-readme/
-// Posebna datoteka za definiranje shortcodes
-// Promjena text-domaina u prijevodima na 'wp-aaieduhr-auth'
-// Uskladi nazive klasa, metoda, varijabli
+// TODO mivanci
+// Create readme: https://generatewp.com/plugin-readme/
+// Consider deleting users created using AAI@EduHr on plugin deactivation.
 
 // Ensure that the plugin is run under WordPress.
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
@@ -26,6 +24,7 @@ require( 'class-wp-aaieduhr-bootstrap.php' );
 // Initialize plugin.
 WP_AAIEduHr_Bootstrap::init();
 
-// Register the plugin activation hook.
+// Register the plugin activation and deactivation hooks.
 register_activation_hook( __FILE__, array( 'WP_AAIEduHr_Bootstrap', 'plugin_activated' ) );
+register_deactivation_hook( __FILE__, array( 'WP_AAIEduHr_Bootstrap', 'plugin_deactivated' ) );
 

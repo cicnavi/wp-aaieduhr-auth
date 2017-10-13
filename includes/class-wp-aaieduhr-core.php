@@ -27,10 +27,10 @@ class WP_AAIEduHr_Core {
 
 	public function __construct(WP_AAIEduHr_Options $options) {
 
-		// Instantiate plugin options.
+		// Save plugin options so we can use them.
 		$this->options = $options;
 
-		// If options are entered and are valid, start using AAI@EduHr authentication.
+		// If options are valid, start using AAI@EduHr authentication.
 		if ( $this->options->are_valid ) {
 
 			// Start using AAI@EduHr authentication.
@@ -55,123 +55,86 @@ class WP_AAIEduHr_Core {
 
 		}
 
-		add_shortcode( 'auth-message', array( $this, 'render_auth_message' ) );
-
 	}
 
 	/**
-	 * A shortcode for rendering simple messages to the user, using a shortcode on a dedicated page.
-	 * For example, if user logs in, the message 'Login successful' is shown to the user.
+	 * Start using AIA@EduHr authentication.
 	 *
-	 * @param  array $attributes Shortcode attributes.
-	 * @param  string $content The text content for shortcode. Not used.
-	 *
-	 * @return string  The shortcode output
 	 */
-	public function render_auth_message( $attributes, $content = null ) {
+	protected function apply() {
 
-		// Some default attributes, to get us started.
-		$default_attributes = array(
-			'show_title'   => true,
-			'auth_message' => 'No message...'
-		);
+		// Add custom login execution.
+		add_action( 'login_form_login', array( $this, 'redirect_to_aaieduhr_login' ) );
 
-		$attributes = shortcode_atts( $default_attributes, $attributes );
+		// Hook to logout
+		add_action( 'wp_logout', array( $this, 'redirect_after_logout' ) );
 
-		// Resolve actual, main message (status of authentication).
-		if ( isset( $_GET['type'] ) ) {
-			switch ( $_GET['type'] ) {
-				case 'login':
-					$attributes['auth_message'] = __( 'Login successful.', 'wp-aaieduhr-auth' );
-					break;
-				case 'logout':
-					$attributes['auth_message'] = __( 'Logout successful.', 'wp-aaieduhr-auth' );
-					break;
-				case 'error':
-					$attributes['auth_message'] = __( 'Oups, there was an error.', 'wp-aaieduhr-auth' );
-					break;
-
-			}
-		}
-
-		// Resolve error messages
-		$errors = [];
-		if ( isset( $_GET['errors'] ) ) {
-			// Error message codes will be given as GET parameter, as a comma separated list.
-			$error_codes = explode( ',', $_GET['errors'] );
-
-			// For each error code get the actual error message.
-			foreach ( $error_codes as $code ) {
-				$errors[] = $this->get_error_message( $code );
-			}
-		}
-		// Save errors to attributes, so we can use them in shortcode.
-		$attributes['errors'] = $errors;
-
-		// Pass the redirect parameter to the WordPress login functionality: by default,
-		// don't specify a redirect, but if a valid redirect URL has been passed as
-		// request parameter, use it.
-		$attributes['redirect'] = '';
-		if ( isset( $_REQUEST['redirect_to'] ) ) {
-			$attributes['redirect'] = wp_validate_redirect( $_REQUEST['redirect_to'], $attributes['redirect'] );
-		}
-
-		// Render the actual template
-		return $this->get_template_html( 'auth_message', $attributes );
+		// Remove default authentication filters.
+		remove_filter( 'authenticate', 'wp_authenticate_username_password' );
+		remove_filter( 'authenticate', 'wp_authenticate_email_password' );
+		remove_filter( 'authenticate', 'wp_authenticate_spam_check' );
 	}
 
-	/**
-	 * Redirect the user to the custom login page instead of wp-login.php.
-	 */
-	public function redirect_to_custom_login() {
 
+	/**
+	 * Redirect the user to the AAI@EduHr login page instead of wp-login.php.
+	 */
+	public function redirect_to_aaieduhr_login() {
+
+		// If there is redirect parameter, save it.
 		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : null;
 
+		// If user is already logged in, simply redirect him and stop.
 		if ( is_user_logged_in() ) {
 			$this->redirect_logged_in_user( $redirect_to );
 			exit;
 		}
 
-		$login_url = home_url( '/' );
-
-		if ( ! empty( $redirect_to ) ) {
-			$login_url = add_query_arg( 'redirect_to', $redirect_to, $login_url );
-		}
-
+		// Get the SimpleSAMLphp package.
 		require_once( $this->options->get()['simplesamlphp_path'] );
 
+		// Create new SSP instance.
 		$ssp = new SimpleSAML_Auth_Simple( $this->options->get()['service_type'] );
 
-		if ( ! $ssp->isAuthenticated() ) {
-			$ssp->requireAuth();
-		} else {
-			$attributes = $ssp->getAttributes();
-		}
+		// User must be authenticated using AAI@EduHr
+		$ssp->requireAuth();
 
+		// Get the user attributes from AAI@EduHr
+		$attributes = $ssp->getAttributes();
+
+		// Person ID must be set in attributes.
 		if ( ! isset( $attributes['hrEduPersonUniqueID'] ) ) {
+			// Redirect to our custom page and show the error.
 			wp_redirect( home_url( 'aaieduhr-auth' ) . '?type=error&errors=no_unique_id' );
 			exit;
 		}
 
+		// We wll use person ID as username.
 		$username = $attributes['hrEduPersonUniqueID'][0];
 
-		// We will use AAI@EduHR ID as username.
+		// Try to get the user, so we can check if it already exists.
 		$user = get_user_by( 'login', $username );
 
 		if ( $user ) {
 			// User exists, so we can set user on current request.
 			wp_set_current_user( $user->ID );
 		} else {
+			// User does not exist.
+			// Check if we are allowed to create new users.
 			if ( ! $this->options->get()['should_create_new_users'] ) {
+				// We are not allowed to create new users, so show the appropriate message and stop.
 				wp_redirect( home_url( 'aaieduhr-auth' ) . '?type=error&errors=user_creation_disabled' );
 				exit;
 			}
 
-			// Create new user.
-			if ( isset( $attributes['mail'] ) ) {
-				$email = $attributes['mail'][0];
-			} else {
-				$email = $attributes['hrEduPersonUniqueID'][0];
+			// We are allowed to create new users.
+			// Prepare data for user creation.
+			// Email will be the same as user ID, so we basically avoid email duplication (which WordPress won't allow).
+			$email = $attributes['hrEduPersonUniqueID'][0];
+			// We will store original email, just for records.
+			$original_email = null;
+			if( isset( $attributes['mail'] ) ){
+				$original_email = $attributes['mail'][0];
 			}
 
 			$first_name = '';
@@ -183,8 +146,9 @@ class WP_AAIEduHr_Core {
 				$last_name = sanitize_text_field( $attributes['sn'][0] );
 			}
 
-			// If successfull, we will get user ID, otherwise WP_Error instance.
-			$user_id = $this->register_user( $username, $email, $first_name, $last_name );
+			// Create the user.
+			// If successful, we will get user ID, otherwise WP_Error instance.
+			$user_id = $this->register_user( $username, $email, $original_email, $first_name, $last_name );
 
 			// If there was an error creating the user, redirect and show errors.
 			if ( is_wp_error( $user_id ) ) {
@@ -205,10 +169,11 @@ class WP_AAIEduHr_Core {
 
 		// https://gist.github.com/cliffordp/e8d1d9f732328ba360ad
 		// https://codex.wordpress.org/Function_Reference/wp_set_current_user
-		// Set auth cookie so user stays authenticated.
+		// Set auth cookie so user stays authenticated on future requests.
 		wp_set_auth_cookie( $user->ID );
 		do_action( 'wp_login', $user->user_login );
 
+		// Users are logged in, so we can redirect them to appropriate page.
 		$this->redirect_logged_in_user();
 
 		// We end the execution using an exit command because otherwise, the execution will continue
@@ -217,7 +182,7 @@ class WP_AAIEduHr_Core {
 	}
 
 	/**
-	 * Validates and then completes the new user signup process if all went well.
+	 * Validate user date and create new user.
 	 *
 	 * @param string $username The new user's username (login)
 	 * @param string $email The new user's email address
@@ -226,23 +191,23 @@ class WP_AAIEduHr_Core {
 	 *
 	 * @return int|WP_Error         The id of the user that was created, or error if failed.
 	 */
-	private function register_user( $username, $email, $first_name = '', $last_name = '' ) {
+	private function register_user( $username, $email, $original_email = null, $first_name = '', $last_name = '' ) {
 
 		$errors = new WP_Error();
 
+		// Username should not already exist.
 		if ( username_exists( $username ) ) {
-			$errors->add( 'username_exists', $this->get_error_message( 'username_exists' ) );
-
+			$errors->add( 'username_exists', WP_AAIEduHr_Helper::get_error_message( 'username_exists' ) );
 			return $errors;
 		}
 
+		// Email should be in correct format.
 		if ( ! is_email( $email ) ) {
-			$errors->add( 'email_invalid', $this->get_error_message( 'email_invalid' ) );
-
+			$errors->add( 'email_invalid', WP_AAIEduHr_Helper::get_error_message( 'email_invalid' ) );
 			return $errors;
 		}
 
-		// Generate the password
+		// Generate random password. It won't be used when this plugin is active.
 		$password = wp_generate_password( 12, false );
 
 		$user_data = array(
@@ -254,80 +219,15 @@ class WP_AAIEduHr_Core {
 			'nickname'   => $first_name,
 		);
 
+		// Insert user to the database.
 		$user_id = wp_insert_user( $user_data );
 
+		// Add indication that the user was created when he authenticated using AAI@EduHr.
+		add_user_meta($user_id, 'aaieduhr_account', true);
+		// Store the original email, just for records.
+		add_user_meta($user_id, 'aaieduhr_original_email', $original_email);
+
 		return $user_id;
-	}
-
-	/**
-	 * Finds and returns a matching error message for the given error code.
-	 *
-	 * @param string $error_code The error code to look up.
-	 *
-	 * @return string               An error message.
-	 */
-	private function get_error_message( $error_code ) {
-		switch ( $error_code ) {
-
-			case 'no_unique_id':
-				return __( 'AAI@EduHr service did not provide unique user ID.', 'aaieduhr' );
-
-			case 'user_creation_disabled':
-				return __( 'You were successfully authenticated using AAI@EduHr service, 
-					but your account is currently not allowed to enter (new user creation is disabled).', 'aaieduhr' );
-
-			case 'username_exists':
-				return __( 'Username is already taken.', 'aaieduhr' );
-
-			case 'email_invalid':
-				return __( 'Email is not valid.', 'aaieduhr' );
-
-			default:
-				break;
-		}
-
-		return __( 'An unknown error occurred. Please try again later.', 'personalize-login' );
-	}
-
-	/**
-	 * Renders the contents of the given template to a string and returns it.
-	 *
-	 * @param string $template_name The name of the template to render (without .php)
-	 * @param array $attributes The PHP variables for the template
-	 *
-	 * @return string               The contents of the template.
-	 */
-	private function get_template_html( $template_name, $attributes = null ) {
-		if ( ! $attributes ) {
-			$attributes = array();
-		}
-
-		ob_start();
-
-		do_action( 'personalize_auth_message_' . $template_name );
-
-		require( 'templates/' . $template_name . '.php' );
-
-		do_action( 'personalize_auth_message_' . $template_name );
-
-		$html = ob_get_contents();
-		ob_end_clean();
-
-		return $html;
-	}
-
-	protected function apply() {
-
-		// Add custom login execution.
-		add_action( 'login_form_login', array( $this, 'redirect_to_custom_login' ) );
-
-		// Hook to logout
-		add_action( 'wp_logout', array( $this, 'redirect_after_logout' ) );
-
-		// Remove default authentication filters.
-		remove_filter( 'authenticate', 'wp_authenticate_username_password' );
-		remove_filter( 'authenticate', 'wp_authenticate_email_password' );
-		remove_filter( 'authenticate', 'wp_authenticate_spam_check' );
 	}
 
 	/**

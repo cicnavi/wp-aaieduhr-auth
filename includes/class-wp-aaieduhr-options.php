@@ -79,7 +79,7 @@ class WP_AAIEduHr_Options {
 
 		add_settings_field(
 			'service_type',
-			__( 'Service type', 'WP_AAIEduHr_Auth' ),
+			__( 'Service type', 'wp-aaieduhr-auth' ),
 			array( $this, 'render_input_for_service_type'),
 			'WP_AAIEduHr_Auth_Settings',
 			'wp_aaieduhr_auth_plugin_settings_page_main_configuration'
