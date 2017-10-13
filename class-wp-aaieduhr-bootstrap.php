@@ -46,7 +46,7 @@ class WP_AAIEduHr_Bootstrap {
 
 		static::prepare_plugin_page_definitions();
 
-		// Prepare plugin shortcodes
+		// Initialize plugin shortcodes
 		WP_AAIEduHr_Shortcodes::init();
 
 		// Prepare plugin options.

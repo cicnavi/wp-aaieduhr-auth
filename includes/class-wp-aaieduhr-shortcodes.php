@@ -13,9 +13,6 @@ class WP_AAIEduHr_Shortcodes {
 	}
 
 	public static function init() {
-		// Path to the templates directory.
-		static::$templates_dir = dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR;
-
 		add_shortcode( 'auth-message', array( static::class, 'render_auth_message' ) );
 	}
 
@@ -39,19 +36,8 @@ class WP_AAIEduHr_Shortcodes {
 		$attributes = shortcode_atts( $default_attributes, $attributes );
 
 		// Resolve actual, main message (status of authentication).
-		if ( isset( $_GET['type'] ) ) {
-			switch ( $_GET['type'] ) {
-				case 'login':
-					$attributes['auth_message'] = __( 'Login successful.', 'wp-aaieduhr-auth' );
-					break;
-				case 'logout':
-					$attributes['auth_message'] = __( 'Logout successful.', 'wp-aaieduhr-auth' );
-					break;
-				case 'error':
-					$attributes['auth_message'] = __( 'Oups, there was an error.', 'wp-aaieduhr-auth' );
-					break;
-
-			}
+		if ( isset( $_GET['code'] ) ) {
+			$attributes['auth_message'] = WP_AAIEduHr_Helper::get_message( $_GET['code'] );
 		}
 
 		// Resolve error messages
@@ -77,34 +63,7 @@ class WP_AAIEduHr_Shortcodes {
 		}
 
 		// Render the actual template
-		return static::get_template_html( 'auth_message', $attributes );
-	}
-
-	/**
-	 * Renders the contents of the given template to a string and returns it.
-	 *
-	 * @param string $template_name The name of the template to render (without .php)
-	 * @param array $attributes The PHP variables for the template
-	 *
-	 * @return string               The contents of the template.
-	 */
-	private static function get_template_html( $template_name, $attributes = null ) {
-		if ( ! $attributes ) {
-			$attributes = array();
-		}
-
-		ob_start();
-
-		do_action( 'personalize_auth_message_' . $template_name );
-
-		require( static::$templates_dir . $template_name . '.php' );
-
-		do_action( 'personalize_auth_message_' . $template_name );
-
-		$html = ob_get_contents();
-		ob_end_clean();
-
-		return $html;
+		return WP_AAIEduHr_Helper::get_template_html( 'auth_message', $attributes );
 	}
 
 }

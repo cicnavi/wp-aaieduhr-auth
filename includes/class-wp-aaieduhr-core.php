@@ -105,15 +105,12 @@ class WP_AAIEduHr_Core {
 		// Person ID must be set in attributes.
 		if ( ! isset( $attributes['hrEduPersonUniqueID'] ) ) {
 			// Redirect to our custom page and show the error.
-			wp_redirect( home_url( 'aaieduhr-auth' ) . '?type=error&errors=no_unique_id' );
+			wp_redirect( home_url( 'aaieduhr-auth' ) . '?code=error&errors=no_unique_id' );
 			exit;
 		}
 
-		// We wll use person ID as username.
-		$username = $attributes['hrEduPersonUniqueID'][0];
-
 		// Try to get the user, so we can check if it already exists.
-		$user = get_user_by( 'login', $username );
+		$user = get_user_by( 'login', $attributes['hrEduPersonUniqueID'][0] );
 
 		if ( $user ) {
 			// User exists, so we can set user on current request.
@@ -123,39 +120,24 @@ class WP_AAIEduHr_Core {
 			// Check if we are allowed to create new users.
 			if ( ! $this->options->get()['should_create_new_users'] ) {
 				// We are not allowed to create new users, so show the appropriate message and stop.
-				wp_redirect( home_url( 'aaieduhr-auth' ) . '?type=error&errors=user_creation_disabled' );
+				wp_redirect( home_url( 'aaieduhr-auth' ) . '?code=error&errors=user_creation_disabled' );
 				exit;
 			}
 
 			// We are allowed to create new users.
 			// Prepare data for user creation.
-			// Email will be the same as user ID, so we basically avoid email duplication (which WordPress won't allow).
-			$email = $attributes['hrEduPersonUniqueID'][0];
-			// We will store original email, just for records.
-			$original_email = null;
-			if( isset( $attributes['mail'] ) ){
-				$original_email = $attributes['mail'][0];
-			}
-
-			$first_name = '';
-			if ( isset( $attributes['givenName'] ) ) {
-				$first_name = sanitize_text_field( $attributes['givenName'][0] );
-			}
-			$last_name = '';
-			if ( isset( $attributes['sn'] ) ) {
-				$last_name = sanitize_text_field( $attributes['sn'][0] );
-			}
+			$user_data = $this->prepare_user_data( $attributes );
 
 			// Create the user.
 			// If successful, we will get user ID, otherwise WP_Error instance.
-			$user_id = $this->register_user( $username, $email, $original_email, $first_name, $last_name );
+			$user_id = $this->register_user( $user_data );
 
 			// If there was an error creating the user, redirect and show errors.
 			if ( is_wp_error( $user_id ) ) {
 				// Parse errors into a string and append as parameter to redirect
 				$errors       = join( ',', $user_id->get_error_codes() );
 				$redirect_url = add_query_arg( [
-					'type'   => 'error',
+					'code'   => 'error',
 					'errors' => $errors
 				], home_url( 'aaieduhr-auth' ) );
 
@@ -184,25 +166,22 @@ class WP_AAIEduHr_Core {
 	/**
 	 * Validate user date and create new user.
 	 *
-	 * @param string $username The new user's username (login)
-	 * @param string $email The new user's email address
-	 * @param string $first_name The new user's first name
-	 * @param string $last_name The new user's last name
+	 * @param array $user_data Data needed to create the user
 	 *
 	 * @return int|WP_Error         The id of the user that was created, or error if failed.
 	 */
-	private function register_user( $username, $email, $original_email = null, $first_name = '', $last_name = '' ) {
+	private function register_user( $user_data ) {
 
 		$errors = new WP_Error();
 
 		// Username should not already exist.
-		if ( username_exists( $username ) ) {
+		if ( username_exists( $user_data['username'] ) ) {
 			$errors->add( 'username_exists', WP_AAIEduHr_Helper::get_error_message( 'username_exists' ) );
 			return $errors;
 		}
 
 		// Email should be in correct format.
-		if ( ! is_email( $email ) ) {
+		if ( ! is_email( $user_data['email'] ) ) {
 			$errors->add( 'email_invalid', WP_AAIEduHr_Helper::get_error_message( 'email_invalid' ) );
 			return $errors;
 		}
@@ -210,22 +189,28 @@ class WP_AAIEduHr_Core {
 		// Generate random password. It won't be used when this plugin is active.
 		$password = wp_generate_password( 12, false );
 
-		$user_data = array(
-			'user_login' => $username,
-			'user_email' => $email,
+		// Specify which data to use for user insert.
+		$user_insert_data = [
+			'user_login' => $user_data['username'],
+			'user_email' => $user_data['email'],
 			'user_pass'  => $password,
-			'first_name' => $first_name,
-			'last_name'  => $last_name,
-			'nickname'   => $first_name,
-		);
+			'first_name' => $user_data['first_name'],
+			'last_name'  => $user_data['last_name'],
+			'nickname'   => $user_data['first_name'],
+		];
 
 		// Insert user to the database.
-		$user_id = wp_insert_user( $user_data );
+		$user_id = wp_insert_user( $user_insert_data );
+
+		$usermeta_prefix = 'aaieduhr_';
 
 		// Add indication that the user was created when he authenticated using AAI@EduHr.
-		add_user_meta($user_id, 'aaieduhr_account', true);
-		// Store the original email, just for records.
-		add_user_meta($user_id, 'aaieduhr_original_email', $original_email);
+		add_user_meta($user_id, $usermeta_prefix . 'account', true);
+
+		// Store all other usermeta available in the user data.
+		foreach ($user_data['meta'] as $key => $value) {
+			add_user_meta($user_id, $usermeta_prefix . $key, $value);
+		}
 
 		return $user_id;
 	}
@@ -245,7 +230,7 @@ class WP_AAIEduHr_Core {
 	public function redirect_after_logout() {
 
 		// We will redirect users to our custom page to show them appropriate logout message.
-		$redirect_url = add_query_arg( 'type', 'logout', home_url( 'aaieduhr-auth' ) );
+		$redirect_url = add_query_arg( 'code', 'logout', home_url( 'aaieduhr-auth' ) );
 
 		// We will check if we need to logout user using AAI@EduHr service.
 		require_once( $this->options->get()['simplesamlphp_path'] );
@@ -277,8 +262,54 @@ class WP_AAIEduHr_Core {
 				wp_redirect( admin_url() );
 			}
 		} else {
-			wp_redirect( add_query_arg( 'type', 'login', home_url( 'aaieduhr-auth' ) ) );
+			wp_redirect( add_query_arg( 'code', 'login', home_url( 'aaieduhr-auth' ) ) );
 		}
+	}
+
+	/**
+	 * Prepare user data from AAI@EduHr attributes.
+	 *
+	 * @param array $attributes
+	 *
+	 * @return array User data
+	 */
+	private function prepare_user_data( $attributes ) {
+
+		$data = [];
+
+		// Username will be AAI@EduHR ID.
+		$data['username'] = $attributes['hrEduPersonUniqueID'][0];
+
+		// Email will be the same as user ID, so we basically avoid email duplication (which WordPress won't allow).
+		$data['email'] = $attributes['hrEduPersonUniqueID'][0];
+
+		if ( isset( $attributes['givenName'] ) ) {
+			$data['first_name'] = sanitize_text_field( $attributes['givenName'][0] );
+		}
+		else {
+			$data['first_name'] = '';
+		}
+		if ( isset( $attributes['givenName'] ) ) {
+			$data['last_name'] = sanitize_text_field( $attributes['sn'][0] );
+		}
+		else {
+			$data['last_name'] = '';
+		}
+
+		// User metadata will be stored in its own array under 'meta' key.
+		$data['meta'] = [];
+		// We will store original email, just for records.
+		if( isset( $attributes['mail'] ) ){
+			$data['meta']['original_mail'] = $attributes['mail'][0];
+		}
+		if( isset( $attributes['hrEduPersonOIB'] ) ){
+			$data['meta']['oib'] = $attributes['hrEduPersonOIB'][0];
+		}
+		if( isset( $attributes['hrEduPersonPersistentID'] ) ){
+			$data['meta']['persistent_id'] = $attributes['hrEduPersonPersistentID'][0];
+		}
+
+		return $data;
 	}
 
 }
