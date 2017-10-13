@@ -227,8 +227,8 @@ class WP_AAIEduHr_Options {
         }
 
         // Service type must be valid.
-        $validServiceTypes = ['fedlab-sp', 'default-sp'];
-        if ( ! isset($this->data['service_type']) || ! in_array($this->data['service_type'], $validServiceTypes)) {
+        $valid_service_types = ['fedlab-sp', 'default-sp'];
+        if ( ! isset($this->data['service_type']) || ! in_array($this->data['service_type'], $valid_service_types)) {
             $this->validation_message .= __(' Service type is not valid.', 'wp-aaieduhr-auth');
 	        $this->are_valid = false;
         }

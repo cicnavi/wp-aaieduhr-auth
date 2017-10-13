@@ -48,7 +48,7 @@ class WP_AAIEduHr_Core {
 			// Options are not valid, so show notice in admin area that something is not right.
 			add_action( 'admin_notices', function () {
 				$class   = 'notice notice-warning';
-				$message = __( 'AAI@EduHr authentication is not applied. Please check AAI@EduHR Auth settings.', 'wp-aaieduhr-auth' )
+				$message = __( 'AAI@EduHr authentication is NOT applied. Please check WP AAI@EduHR Auth settings.', 'wp-aaieduhr-auth' )
 				           . $this->options->validation_message;
 
 				$this->display_plugin_notice( $message, $class );
@@ -326,9 +326,10 @@ class WP_AAIEduHr_Core {
 	 * @param $aaieduhr_id
 	 */
 	protected function check_if_user_realm_is_allowed($aaieduhr_id) {
+		// Extract user realm from his AAI@EduHr ID.
 		$user_realm = substr( $aaieduhr_id, strpos( $aaieduhr_id, '@' ) + 1 );
 
-		// If user is not in the list, return and show appropriate message.
+		// If user realm is not in the allowed list, return and show appropriate message.
 		if ( ! in_array($user_realm, $this->options->get()['allowed_realms'] ) ) {
 			wp_redirect( home_url( 'aaieduhr-auth' ) . '?code=error&errors=realm_not_allowed' );
 			exit;
@@ -336,5 +337,3 @@ class WP_AAIEduHr_Core {
 	}
 
 }
-
-
