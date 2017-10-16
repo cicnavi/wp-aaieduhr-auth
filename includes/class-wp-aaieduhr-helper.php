@@ -138,6 +138,8 @@ class WP_AAIEduHr_Helper {
 	}
 
 	/**
+	 * Check if the user is created using AAI@EduHr authentication.
+	 *
 	 * @param int $user_id ID of the user.
 	 *
 	 * @return bool True if user is created using AAI@EduHr, false otherwise.
