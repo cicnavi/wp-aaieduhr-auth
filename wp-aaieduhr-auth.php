@@ -8,7 +8,7 @@
  * Version:           0.0.1
  * Author:            Marko Ivančić marko.ivancic@srce.hr
  * Author URI:        http://markoivancic.from.hr/
- * License:           GPL-2.0+
+ * License:           GPL-3.0+
  * Text Domain:       wp-aaieduhr-auth
  */
 

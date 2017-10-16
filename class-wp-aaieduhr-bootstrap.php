@@ -40,9 +40,14 @@ class WP_AAIEduHr_Bootstrap {
 	public static function init() {
 
 		// Include necessary files.
-		foreach (static::$files_to_include as $file_name) {
+		foreach ( static::$files_to_include as $file_name ) {
 			require ( static::$includes_dir . $file_name );
 		}
+
+		// Disable the auth check for monitoring whether the user is still logged in, because we will use AAI@EduHr
+		// to authenticate users.
+		// More info: https://techjourney.net/disable-wordpress-session-expired-log-in-again-inline-modal-popup/
+		remove_action('admin_enqueue_scripts', 'wp_auth_check_load');
 
 		static::prepare_plugin_page_definitions();
 

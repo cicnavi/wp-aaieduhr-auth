@@ -37,9 +37,6 @@ class WP_AAIEduHr_Options {
 	 */
 	public function __construct() {
 
-
-
-
 		// Initialize plugin settings
 		add_action( 'admin_init', [$this, 'initialize_settings'] );
 
