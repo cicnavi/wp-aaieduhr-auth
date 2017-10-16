@@ -58,6 +58,9 @@ class WP_AAIEduHr_Helper {
 				return __( 'You were successfully authenticated using AAI@EduHr service, 
 					however your realm is currently not allowed.', 'wp-aaieduhr-auth' );
 
+			case 'simplesamlphp_not_loaded':
+				return __( 'simpleSAMLphp package was not loaded. Is the path to simpleSAMLphp correct?', 'wp-aaieduhr-auth' );
+
 			default:
 				break;
 		}

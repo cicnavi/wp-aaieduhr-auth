@@ -96,6 +96,11 @@ class WP_AAIEduHr_Core {
 		// Get the SimpleSAMLphp package.
 		require_once( $this->options->get()['simplesamlphp_path'] );
 
+		// Check to see if this is really simpleSAMLphp package.
+		if ( ! class_exists( 'SimpleSAML_Auth_Simple') ) {
+			WP_AAIEduHr_Helper::show_message('error', 'simplesamlphp_not_loaded');
+		}
+
 		// Create new SSP instance.
 		$ssp = new SimpleSAML_Auth_Simple( $this->options->get()['service_type'] );
 
@@ -233,6 +238,11 @@ class WP_AAIEduHr_Core {
 
 		// We will check if we need to logout user using AAI@EduHr service.
 		require_once( $this->options->get()['simplesamlphp_path'] );
+
+		// Check to see if this is really simpleSAMLphp package.
+		if ( ! class_exists( 'SimpleSAML_Auth_Simple') ) {
+			WP_AAIEduHr_Helper::show_message('error', 'simplesamlphp_not_loaded');
+		}
 
 		$ssp = new SimpleSAML_Auth_Simple( $this->options->get()['service_type'] );
 
