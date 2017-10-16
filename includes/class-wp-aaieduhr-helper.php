@@ -95,4 +95,45 @@ class WP_AAIEduHr_Helper {
 
 		return $html;
 	}
+
+	/**
+	 * Redirect to custom page and show appropriate message according to the provided parameters.
+	 *
+	 * @param string $code Message code.
+	 * @param string $errors Comma separated list of error codes. Default is empty string.
+	 * @param string $slug The slug of the page on which to show the error. Default is aaieduhr-auth.
+	 */
+	public static function show_message( $code, $errors = '', $slug = 'aaieduhr-auth' ) {
+
+		$query_args['code'] = $code;
+
+		if ( isset( $errors ) && ! empty( $errors ) ){
+			$query_args['errors'] = $errors;
+		}
+
+		$redirect_url = static::get_permalink_by_slug($slug, $query_args);
+
+		wp_redirect( $redirect_url );
+		exit;
+	}
+
+	/**
+	 * Get permalink for page and add query params if needed.
+	 *
+	 * @param $slug Slug of the page.
+	 *
+	 * @param array $query_args Query arguments to add to the link.
+	 *
+	 * @return string Permalink
+	 */
+	public static function get_permalink_by_slug( $slug, $query_args = [] ) {
+
+		$page = get_page_by_path( $slug );
+
+		$page_permalink = get_permalink( $page );
+
+		$redirect_url = add_query_arg( $query_args , $page_permalink );
+
+		return $redirect_url;
+	}
 }

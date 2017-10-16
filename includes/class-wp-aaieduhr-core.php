@@ -91,7 +91,6 @@ class WP_AAIEduHr_Core {
 		// If user is already logged in, simply redirect him and stop.
 		if ( is_user_logged_in() ) {
 			$this->redirect_logged_in_user( $redirect_to );
-			exit;
 		}
 
 		// Get the SimpleSAMLphp package.
@@ -109,8 +108,7 @@ class WP_AAIEduHr_Core {
 		// Person ID must be set in attributes.
 		if ( ! isset( $attributes['hrEduPersonUniqueID'] ) ) {
 			// Redirect to our custom page and show the error.
-			wp_redirect( home_url( 'aaieduhr-auth' ) . '?code=error&errors=no_unique_id' );
-			exit;
+			WP_AAIEduHr_Helper::show_message('error', 'no_unique_id');
 		}
 
 		// Check if only specific realms are allowed.
@@ -131,8 +129,7 @@ class WP_AAIEduHr_Core {
 			// Check if we are allowed to create new users.
 			if ( ! $this->options->get()['should_create_new_users'] ) {
 				// We are not allowed to create new users, so show the appropriate message and stop.
-				wp_redirect( home_url( 'aaieduhr-auth' ) . '?code=error&errors=user_creation_disabled' );
-				exit;
+				WP_AAIEduHr_Helper::show_message('error', 'user_creation_disabled');
 			}
 
 			// We are allowed to create new users.
@@ -145,15 +142,10 @@ class WP_AAIEduHr_Core {
 
 			// If there was an error creating the user, redirect and show errors.
 			if ( is_wp_error( $user_id ) ) {
-				// Parse errors into a string and append as parameter to redirect
+				// Parse errors into a string.
 				$errors       = join( ',', $user_id->get_error_codes() );
-				$redirect_url = add_query_arg( [
-					'code'   => 'error',
-					'errors' => $errors
-				], home_url( 'aaieduhr-auth' ) );
-
-				wp_redirect( $redirect_url );
-				exit;
+				// Show the message and stop.
+				WP_AAIEduHr_Helper::show_message('error', $errors );
 			}
 
 			// Set user for current request, and also get the user instance.
@@ -168,10 +160,6 @@ class WP_AAIEduHr_Core {
 
 		// Users are logged in, so we can redirect them to appropriate page.
 		$this->redirect_logged_in_user();
-
-		// We end the execution using an exit command because otherwise, the execution will continue
-		// with the rest of the actions in wp-login.php
-		exit;
 	}
 
 	/**
@@ -241,7 +229,7 @@ class WP_AAIEduHr_Core {
 	public function redirect_after_logout() {
 
 		// We will redirect users to our custom page to show them appropriate logout message.
-		$redirect_url = add_query_arg( 'code', 'logout', home_url( 'aaieduhr-auth' ) );
+		$redirect_url = WP_AAIEduHr_Helper::get_permalink_by_slug('aaieduhr-auth', [ 'code' => 'logout' ] );
 
 		// We will check if we need to logout user using AAI@EduHr service.
 		require_once( $this->options->get()['simplesamlphp_path'] );
@@ -252,8 +240,9 @@ class WP_AAIEduHr_Core {
 			$ssp->logout( $redirect_url );
 		} else {
 			wp_redirect( $redirect_url );
-			exit;
 		}
+
+		exit;
 	}
 
 	/**
@@ -273,8 +262,12 @@ class WP_AAIEduHr_Core {
 				wp_redirect( admin_url() );
 			}
 		} else {
-			wp_redirect( add_query_arg( 'code', 'login', home_url( 'aaieduhr-auth' ) ) );
+			WP_AAIEduHr_Helper::show_message('login' );
 		}
+
+		// We will end the execution using an exit command because otherwise, the execution will continue
+		// with the rest of the actions in wp-login.php
+		exit;
 	}
 
 	/**
@@ -334,8 +327,9 @@ class WP_AAIEduHr_Core {
 
 		// If user realm is not in the allowed list, return and show appropriate message.
 		if ( ! in_array($user_realm, $this->options->get()['allowed_realms'] ) ) {
-			wp_redirect( home_url( 'aaieduhr-auth' ) . '?code=error&errors=realm_not_allowed' );
-			exit;
+
+			WP_AAIEduHr_Helper::show_message('error', 'realm_not_allowed');
+
 		}
 	}
 

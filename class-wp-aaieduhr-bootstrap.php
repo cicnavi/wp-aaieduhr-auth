@@ -64,7 +64,7 @@ class WP_AAIEduHr_Bootstrap {
 		// Information needed for creating the plugin's pages
 		static::$page_definitions = [
 			'aaieduhr-auth' => [
-				'title' => __( 'AAIEduHr Auth', 'wp-aaieduhr-auth' ),
+				'title' => __( 'AAI@EduHr Auth', 'wp-aaieduhr-auth' ),
 				'content' => '[auth-message]'
 			],
 		];
