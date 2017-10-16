@@ -55,12 +55,42 @@ class WP_AAIEduHr_Bootstrap {
 		// Create plugin instance using available options.
 		$core = new WP_AAIEduHr_Core($options);
 
+		// Disable password resetting feature for accounts created using AAI@EduHr.
+		add_filter( 'allow_password_reset', array( static::class, 'disable_password_reset'), 10, 2 );
+		add_filter( 'show_password_fields', array( static::class, 'disable_password_fields'), 10, 2 );
+
+	}
+
+	/**
+	 * Disable password reset feature for accounts created using AAI@EduHr.
+	 *
+	 */
+	public static function disable_password_reset( $allow, $user_id ) {
+
+		// Disable password reset if account is created using AAI@EduHr
+		return ! WP_AAIEduHr_Helper::is_aaieduhr_account( $user_id );
+
+	}
+
+	/**
+	 * Remove password reset fields on user edit page for accounts created using AAI@EduHr.
+	 *
+	 * @param boolean $show
+	 * @param WP_User $user
+	 *
+	 * @return bool True or false.
+	 */
+	public static function disable_password_fields( $show, $user ) {
+
+		// Remove password reset fields for accounts created using AAI@EduHr.
+		return ! WP_AAIEduHr_Helper::is_aaieduhr_account( $user->ID );
+
 	}
 
 	/**
 	 * Prepare plugin page definitions.
 	 */
-	protected static function prepare_plugin_page_definitions() {
+	protected static function prepare_plugin_page_definitions( ) {
 		// Information needed for creating the plugin's pages
 		static::$page_definitions = [
 			'aaieduhr-auth' => [
@@ -73,7 +103,7 @@ class WP_AAIEduHr_Bootstrap {
 	/**
 	 * Plugin activation hook. Code to execute when plugin is activated.
 	 */
-	public static function plugin_activated() {
+	public static function plugin_activated( ) {
 
 		// Create defined pages.
 		foreach ( static::$page_definitions as $slug => $page ) {
@@ -109,26 +139,42 @@ class WP_AAIEduHr_Bootstrap {
 			}
 		}
 
-		/**
-		 * Consider deleting users or removing roles from all users created using AAI@EduHr.
-		 * By removing roles, user won't be able to do anything on th site.
-		 * The problem with created users can arise if the user chooses to reset his password,
-		 * once the plugin has been deactivated.
-		 *
-		 * $users = get_users([
-		 * 	'meta_key' => 'aaieduhr_account',
-		 * 	'meta_value' => true
-		 * ]);
-		 *
-		 * foreach ($users as $user) {
-		 *  // Delete role
-		 * 	update_user_meta($user->ID, 'wp_capabilities', []);
-		 *  // ...or delete user. Beware that this will also delete their posts if you don't provide the $reassign
-		 *  // parameter (the ID of the user to which to assign all post from the user to be deleted).
-		 *  wp_delete_user($user->ID, $reassign = false);
-		 * }
-		 *
-		 *
-		 */
+		/*
+		// Consider doing something with all of the users created when plugin was active.
+		// Get all users created using AAI@EduHr authentication.
+		$users = get_users([
+			'meta_key' => 'aaieduhr_account',
+			'meta_value' => true
+		]);
+		*/
+
+		/*
+		// Consider deleting users created using AIA@EduHr.
+		foreach ($users as $user) {
+		    // Beware that this will also delete their posts since we don't provide the $reassign
+		    // parameter (the ID of the user to which to assign all post from the user to be deleted).
+			wp_delete_user($user->ID, $reassign = false);
+		}
+		*/
+
+		/*
+		// Consider resseting their passwords, so that they won't be able to use local WP authentication. This is necessary since
+		// users can reset their passwords using WP account management.
+		foreach ($users as $user) {
+			wp_set_password(wp_generate_password(), $user->ID);
+		}
+		*/
+
+		/*
+		// Consider deleting roles for users created using AAI@EduHr.
+		// By removing roles, user won't be able to do anything on th site.
+		// The problem with created users can arise if the user chooses to reset his local WordPress password,
+		// which will effectively enable him to login even if the plugin has been deactivated.
+		foreach ($users as $user) {
+			// Delete role
+			update_user_meta($user->ID, 'wp_capabilities', []);
+		}
+		*/
+
 	}
 }

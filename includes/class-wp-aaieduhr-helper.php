@@ -136,4 +136,13 @@ class WP_AAIEduHr_Helper {
 
 		return $redirect_url;
 	}
+
+	/**
+	 * @param int $user_id ID of the user.
+	 *
+	 * @return bool True if user is created using AAI@EduHr, false otherwise.
+	 */
+	public static function is_aaieduhr_account ( $user_id ) {
+		return (bool) get_user_meta($user_id, 'aaieduhr_account', true);
+	}
 }
