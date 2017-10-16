@@ -44,11 +44,6 @@ class WP_AAIEduHr_Bootstrap {
 			require ( static::$includes_dir . $file_name );
 		}
 
-		// Disable the auth check for monitoring whether the user is still logged in, because we will use AAI@EduHr
-		// to authenticate users.
-		// More info: https://techjourney.net/disable-wordpress-session-expired-log-in-again-inline-modal-popup/
-		remove_action('admin_enqueue_scripts', 'wp_auth_check_load');
-
 		static::prepare_plugin_page_definitions();
 
 		// Initialize plugin shortcodes

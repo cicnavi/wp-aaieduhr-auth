@@ -70,12 +70,15 @@ class WP_AAIEduHr_Core {
 		// Hook to logout
 		add_action( 'wp_logout', array( $this, 'redirect_after_logout' ) );
 
-		// Remove default authentication filters.
+		// Remove default authentication filters, they are not needed now.
 		remove_filter( 'authenticate', 'wp_authenticate_username_password' );
 		remove_filter( 'authenticate', 'wp_authenticate_email_password' );
 		remove_filter( 'authenticate', 'wp_authenticate_spam_check' );
-	}
 
+		// Disable the auth check for monitoring whether the user is still logged in, to prevent 'Log in again' modal.
+		// More info: https://techjourney.net/disable-wordpress-session-expired-log-in-again-inline-modal-popup/
+		remove_action('admin_enqueue_scripts', 'wp_auth_check_load');
+	}
 
 	/**
 	 * Redirect the user to the AAI@EduHr login page instead of wp-login.php.
