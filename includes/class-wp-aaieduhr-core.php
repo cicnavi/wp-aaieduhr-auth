@@ -36,24 +36,19 @@ class WP_AAIEduHr_Core {
 			// Start using AAI@EduHr authentication.
 			$this->apply();
 
-			// Display notice in admin area that we are now using AAI@EduHr authentication.
-			add_action( 'admin_notices', function () {
-				$class   = 'notice notice-success';
-				$message = __( 'AAI@EduHr authentication is applied. Users need to use AAI@EduHr identities to log in.', 'wp-aaieduhr-auth' );
-				$this->display_plugin_notice( $message, $class );
-			} );
+			$class   = 'notice notice-success';
+			$message = __( 'AAI@EduHr authentication is applied. Users need to use AAI@EduHr identities to log in.', 'wp-aaieduhr-auth' );
+
+			WP_AAIEduHr_Helper::display_notice($message, $class);
 
 		} else {
 
 			// Options are not valid, so show notice in admin area that something is not right.
-			add_action( 'admin_notices', function () {
-				$class   = 'notice notice-warning';
-				$message = __( 'AAI@EduHr authentication is NOT applied. Please check WP AAI@EduHR Auth settings.', 'wp-aaieduhr-auth' )
-				           . $this->options->validation_message;
+			$class   = 'notice notice-warning';
+			$message = __( 'AAI@EduHr authentication is NOT applied. Please check WP AAI@EduHR Auth settings.', 'wp-aaieduhr-auth' ) .
+			           $this->options->validation_message;
 
-				$this->display_plugin_notice( $message, $class );
-			} );
-
+			WP_AAIEduHr_Helper::display_notice($message, $class);;
 		}
 
 	}
@@ -209,14 +204,6 @@ class WP_AAIEduHr_Core {
 		}
 
 		return $user_id;
-	}
-
-	/**
-	 * Notice to let admins know that AAI@EduHr authentication is active.
-	 */
-	public function display_plugin_notice( $message, $class ) {
-
-		printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
 	}
 
 	/**

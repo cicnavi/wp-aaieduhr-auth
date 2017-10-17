@@ -150,4 +150,35 @@ class WP_AAIEduHr_Helper {
 	public static function is_aaieduhr_account ( $user_id ) {
 		return (bool) get_user_meta($user_id, 'aaieduhr_account', true);
 	}
+
+
+	/**
+	 * Display notice to let admins know if AAI@EduHr authentication is active or not.
+	 *
+	 * @param string $message
+	 * @param string $class
+	 *
+	 */
+	public static function display_notice( $message, $class ) {
+
+		// Add action to display the notice.
+		add_action( 'admin_notices', function () use ($message, $class) {
+			static::display_notice_action( $message, $class );
+		} );
+	}
+
+	/**
+	 * Action which will print admin notice.
+	 *
+	 * @param string $message
+	 * @param string $class
+	 */
+	protected static function display_notice_action( $message, $class ) {
+
+		// Only show notice for users with administrative privileges.
+		if ( current_user_can( 'manage_options') ) {
+			printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
+		}
+
+	}
 }
