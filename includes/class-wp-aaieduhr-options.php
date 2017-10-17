@@ -217,9 +217,11 @@ class WP_AAIEduHr_Options {
 	 */
 	protected function validate()
     {
-        // simpleSAMLPhp path should be valid, file should exists.
-        if ( ! isset($this->data['simplesamlphp_path']) || ! file_exists($this->data['simplesamlphp_path'])) {
-            $this->validation_message .= __(' Can not find simpleSAMLphp file.', 'wp-aaieduhr-auth');
+        // simpleSAMLPhp path should be valid, file should exists, and simpleSAMLphp class should be loaded.
+        if ( ! isset($this->data['simplesamlphp_path']) ||
+             ! file_exists($this->data['simplesamlphp_path']) ||
+             ! $this->load_simpleSAMLphp( ) ) {
+            $this->validation_message .= __(' Can not load simpleSAMLphp.', 'wp-aaieduhr-auth');
 	        $this->are_valid = false;;
         }
 
@@ -307,5 +309,15 @@ class WP_AAIEduHr_Options {
         </div>
 		<?php
 
+	}
+
+	/**
+     * Check if class needed to use simpleSAMLphp exists.
+     *
+	 * @return bool True if successful, false otherwise.
+	 */
+	private function load_simpleSAMLphp( ) {
+	    require_once( $this->data['simplesamlphp_path'] );
+	    return class_exists( 'SimpleSAML_Auth_Simple');
 	}
 }

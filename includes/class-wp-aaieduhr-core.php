@@ -25,7 +25,7 @@ class WP_AAIEduHr_Core {
 	 */
 	protected $options;
 
-	public function __construct(WP_AAIEduHr_Options $options) {
+	public function __construct( WP_AAIEduHr_Options $options ) {
 
 		// Save plugin options so we can use them.
 		$this->options = $options;
@@ -62,7 +62,7 @@ class WP_AAIEduHr_Core {
 	 * Start using AIA@EduHr authentication.
 	 *
 	 */
-	protected function apply() {
+	protected function apply( ) {
 
 		// Add custom login execution.
 		add_action( 'login_form_login', array( $this, 'redirect_to_aaieduhr_login' ) );
@@ -83,7 +83,7 @@ class WP_AAIEduHr_Core {
 	/**
 	 * Redirect the user to the AAI@EduHr login page instead of wp-login.php.
 	 */
-	public function redirect_to_aaieduhr_login() {
+	public function redirect_to_aaieduhr_login( ) {
 
 		// If there is redirect parameter, save it.
 		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : null;
@@ -91,14 +91,6 @@ class WP_AAIEduHr_Core {
 		// If user is already logged in, simply redirect him and stop.
 		if ( is_user_logged_in() ) {
 			$this->redirect_logged_in_user( $redirect_to );
-		}
-
-		// Get the SimpleSAMLphp package.
-		require_once( $this->options->get()['simplesamlphp_path'] );
-
-		// Check to see if this is really simpleSAMLphp package.
-		if ( ! class_exists( 'SimpleSAML_Auth_Simple') ) {
-			WP_AAIEduHr_Helper::show_message('error', 'simplesamlphp_not_loaded');
 		}
 
 		// Create new SSP instance.
@@ -236,14 +228,6 @@ class WP_AAIEduHr_Core {
 		// We will redirect users to our custom page to show them appropriate logout message.
 		$redirect_url = WP_AAIEduHr_Helper::get_permalink_by_slug('aaieduhr-auth', [ 'code' => 'logout' ] );
 
-		// We will check if we need to logout user using AAI@EduHr service.
-		require_once( $this->options->get()['simplesamlphp_path'] );
-
-		// Check to see if this is really simpleSAMLphp package.
-		if ( ! class_exists( 'SimpleSAML_Auth_Simple') ) {
-			WP_AAIEduHr_Helper::show_message('error', 'simplesamlphp_not_loaded');
-		}
-
 		$ssp = new SimpleSAML_Auth_Simple( $this->options->get()['service_type'] );
 
 		if ( $ssp->isAuthenticated() ) {
@@ -331,7 +315,7 @@ class WP_AAIEduHr_Core {
 	 *
 	 * @param $aaieduhr_id
 	 */
-	protected function check_if_user_realm_is_allowed($aaieduhr_id) {
+	protected function check_if_user_realm_is_allowed( $aaieduhr_id ) {
 		// Extract user realm from his AAI@EduHr ID.
 		$user_realm = substr( $aaieduhr_id, strpos( $aaieduhr_id, '@' ) + 1 );
 
