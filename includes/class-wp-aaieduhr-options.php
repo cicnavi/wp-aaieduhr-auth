@@ -155,11 +155,9 @@ class WP_AAIEduHr_Options {
                value='1'>
         <p class="description">
 	        <?php
-	        $description = 'Check this option if you want to automatically create local users which are successfully authenticated trough AAI@EduHr. <br>
+	            _e('Check this option if you want to automatically create local users which are successfully authenticated trough AAI@EduHr. <br>
                 Uncheck it if you want to manually create local users which are then allowed to authenticate trough AAI@EduHr
-                (if you want to use standard WordPress user administration to allow only specific users). <br>';
-
-	            _e($description, 'wp-aaieduhr-auth');
+                (if you want to use standard WordPress user administration to allow only specific users). <br>', 'wp-aaieduhr-auth');
 	        ?>
 
         </p>
@@ -175,11 +173,10 @@ class WP_AAIEduHr_Options {
                value='<?php echo isset($this->data['allowed_realms']) ? implode(', ', $this->data['allowed_realms']) : ''; ?>'>
         <p class="description">
             <?php
-                $description = 'Leave empty if users from any realm are allowed to authenticate trough AAI@EduHr.<br>
-                    If you want to limit authentication to specific realms, enter comma separated list of realms. <br>
-                    For example, to limit authentication only to srce.hr and sfzg.hr realms, enter: srce.hr, sfzg.hr';
 
-                _e($description, 'wp-aaieduhr-auth');
+                _e('Leave empty if users from any realm are allowed to authenticate trough AAI@EduHr.<br>
+                    If you want to limit authentication to specific realms, enter comma separated list of realms. <br>
+                    For example, to limit authentication only to srce.hr and sfzg.hr realms, enter: srce.hr, sfzg.hr', 'wp-aaieduhr-auth');
             ?>
         </p>
 		<?php
