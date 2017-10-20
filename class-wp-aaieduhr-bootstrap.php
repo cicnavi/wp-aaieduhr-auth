@@ -58,7 +58,6 @@ class WP_AAIEduHr_Bootstrap {
 		// Disable password resetting features.
 		add_filter( 'allow_password_reset', array( static::class, 'disable_password_reset'), 10, 2 );
 		add_filter( 'show_password_fields', array( static::class, 'disable_password_fields'), 10, 2 );
-		add_action( 'login_form_postpass', array( static::class, 'show_disabled_password_manipulation_message' ) );
 		add_action( 'login_form_lostpassword', array( static::class, 'show_disabled_password_manipulation_message' ) );
 		add_action( 'login_form_retrievepassword', array( static::class, 'show_disabled_password_manipulation_message' ) );
 		add_action( 'login_form_resetpass', array( static::class, 'show_disabled_password_manipulation_message' ) );
