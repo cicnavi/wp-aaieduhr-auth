@@ -55,10 +55,54 @@ class WP_AAIEduHr_Bootstrap {
 		// Create plugin instance using available options.
 		$core = new WP_AAIEduHr_Core($options);
 
-		// Disable password resetting feature for accounts created using AAI@EduHr.
+		// Disable password resetting features.
 		add_filter( 'allow_password_reset', array( static::class, 'disable_password_reset'), 10, 2 );
 		add_filter( 'show_password_fields', array( static::class, 'disable_password_fields'), 10, 2 );
+		add_action( 'login_form_postpass', array( static::class, 'show_disabled_password_manipulation_message' ) );
+		add_action( 'login_form_lostpassword', array( static::class, 'show_disabled_password_manipulation_message' ) );
+		add_action( 'login_form_retrievepassword', array( static::class, 'show_disabled_password_manipulation_message' ) );
+		add_action( 'login_form_resetpass', array( static::class, 'show_disabled_password_manipulation_message' ) );
+		add_action( 'login_form_rp', array( static::class, 'show_disabled_password_manipulation_message' ) );
 
+		// Disable user registration
+		add_action( 'login_form_register', array( static::class, 'show_registration_disabled_message' ) );
+
+		// Remove some inputs when adding new users manually using the 'Add New User' form in WordPress.
+		add_action('user_new_form', array( static::class, 'remove_unnecessary_input_when_creating_users'), 10, 2 );
+
+	}
+
+	/**
+	 * Redirect and show message that working with passwords is disabled, since we want to use AAI@EduHr
+	 */
+	public static function show_disabled_password_manipulation_message ( ) {
+	    WP_AAIEduHr_Helper::show_message('error', 'disabled_password_manipulation' );
+    }
+
+	/**
+	 * Redirect and show message that working with passwords is disabled, since we want to use AAI@EduHr
+	 */
+	public static function show_registration_disabled_message ( ) {
+		WP_AAIEduHr_Helper::show_message('error', 'registration_disabled' );
+	}
+
+	/**
+     * Remove some input in 'Add New User' form.
+	 * @param string $form_version
+	 */
+	public static function remove_unnecessary_input_when_creating_users ( $form_version = '' ) {
+		if ( 'add-new-user' == $form_version ):
+			// Remove 'Send notification' option and Password fields, using jQuery.
+			// Dirty, but the original form is hardcoded :/.
+		?>
+			<script type="text/javascript">
+				jQuery(document).ready(function($) {
+					$('#send_user_notification').parents('td').parents('tr').remove();
+                    $('.user-pass1-wrap').hide();
+				});
+			</script>
+		<?php
+		endif;
 	}
 
 	/**
@@ -66,9 +110,10 @@ class WP_AAIEduHr_Bootstrap {
 	 *
 	 */
 	public static function disable_password_reset( $allow, $user_id ) {
-
-		// Disable password reset if account is created using AAI@EduHr
-		return ! WP_AAIEduHr_Helper::is_aaieduhr_account( $user_id );
+		// Disable password resets for all users.
+		return false;
+		// TODO mivanci Consider: Disable password reset if account is created using AAI@EduHr
+		// return ! WP_AAIEduHr_Helper::is_aaieduhr_account( $user_id );
 
 	}
 
@@ -81,9 +126,10 @@ class WP_AAIEduHr_Bootstrap {
 	 * @return bool True or false.
 	 */
 	public static function disable_password_fields( $show, $user ) {
-
-		// Remove password reset fields for accounts created using AAI@EduHr.
-		return ! WP_AAIEduHr_Helper::is_aaieduhr_account( $user->ID );
+		// Disable password fields for all users.
+		return false;
+		// TODO mivanci Consider: Remove password reset fields for accounts created using AAI@EduHr.
+		// return ! WP_AAIEduHr_Helper::is_aaieduhr_account( $user->ID );
 
 	}
 
@@ -133,9 +179,9 @@ class WP_AAIEduHr_Bootstrap {
 		// Delete all created pages.
 		foreach ( static::$page_definitions as $slug => $page_definition ) {
 			// Get the defined page.
-			$page = get_page_by_path($slug);
+			$page = get_page_by_path( $slug );
 			if ($page) {
-				wp_delete_post($page->ID, true);
+				wp_delete_post( $page->ID, true );
 			}
 		}
 

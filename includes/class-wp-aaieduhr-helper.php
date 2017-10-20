@@ -61,6 +61,12 @@ class WP_AAIEduHr_Helper {
 			case 'simplesamlphp_not_loaded':
 				return __( 'simpleSAMLphp package was not loaded. Is the path to simpleSAMLphp correct?', 'wp-aaieduhr-auth' );
 
+			case 'disabled_password_manipulation':
+				return __( 'Password manipulation is disabled since AAI@EduHr system is being used.', 'wp-aaieduhr-auth' );
+
+			case 'registration_disabled':
+				return __( 'User registration is disabled since AAI@EduHr system is being used.', 'wp-aaieduhr-auth' );
+
 			default:
 				break;
 		}
@@ -148,9 +154,25 @@ class WP_AAIEduHr_Helper {
 	 * @return bool True if user is created using AAI@EduHr, false otherwise.
 	 */
 	public static function is_aaieduhr_account ( $user_id ) {
-		return (bool) get_user_meta($user_id, 'aaieduhr_account', true);
+		return (bool) get_user_meta( $user_id, 'aaieduhr_account', true );
 	}
 
+	/**
+	 * Add or update user metadata.
+	 *
+	 * @param int $user_id ID of the user.
+	 * @param array $meta Key-value pairs to enter as user metadata.
+	 */
+	public static function do_update_user_meta( $user_id, $meta ) {
+
+		// Prefix to be used for our metadata.
+		$prefix = 'aaieduhr_';
+
+		foreach ( $meta as $key => $value ) {
+			update_user_meta( $user_id, $prefix . $key, $value );
+		}
+
+	}
 
 	/**
 	 * Display notice to let admins know if AAI@EduHr authentication is active or not.
@@ -162,7 +184,7 @@ class WP_AAIEduHr_Helper {
 	public static function display_notice( $message, $class ) {
 
 		// Add action to display the notice.
-		add_action( 'admin_notices', function () use ($message, $class) {
+		add_action( 'admin_notices', function () use ( $message, $class ) {
 			static::display_notice_action( $message, $class );
 		} );
 	}

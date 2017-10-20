@@ -114,8 +114,25 @@ class WP_AAIEduHr_Core {
 		$user = get_user_by( 'login', $attributes['hrEduPersonUniqueID'][0] );
 
 		if ( $user ) {
-			// User exists, so we can set user on current request.
+			// Check if this is the first time the user has logged in using AAI@EduHr. We can do that by checking the
+			// 'aaieduhr_account' meta which is set to true if the user was created using this plugin,
+			// or logged in at least once.
+			if ( ! WP_AAIEduHr_Helper::is_aaieduhr_account( $user->ID ) ) {
+				// We need to update user meta, so we ensure indication that this is AAI@EduHr account.
+				// Prepare user data. This will also prepare user meta.
+				$user_data = $this->prepare_user_data( $attributes );
+
+				// Update user meta.
+				WP_AAIEduHr_Helper::do_update_user_meta( $user->ID, $user_data['meta'] );
+
+				// We will also reset user password, since it is possible that the admin saw the initial password
+				// during user creation using Add New User form in WordPress administration.
+				wp_set_password( wp_generate_password(), $user->ID );
+			}
+
+			// Ue can set existing user on current request.
 			wp_set_current_user( $user->ID );
+
 		} else {
 			// User does not exist.
 			// Check if we are allowed to create new users.
@@ -193,15 +210,8 @@ class WP_AAIEduHr_Core {
 		// Insert user to the database.
 		$user_id = wp_insert_user( $user_insert_data );
 
-		$usermeta_prefix = 'aaieduhr_';
-
-		// Add indication that the user was created when he authenticated using AAI@EduHr.
-		add_user_meta($user_id, $usermeta_prefix . 'account', true);
-
 		// Store all other usermeta available in the user data.
-		foreach ($user_data['meta'] as $key => $value) {
-			add_user_meta($user_id, $usermeta_prefix . $key, $value);
-		}
+		WP_AAIEduHr_Helper::do_update_user_meta( $user_id, $user_data['meta'] );
 
 		return $user_id;
 	}
@@ -283,13 +293,17 @@ class WP_AAIEduHr_Core {
 
 		// User metadata will be stored in its own array under 'meta' key.
 		$data['meta'] = [];
+		// We will store an indication that this is AAI@EduHr account.
+		$data['meta']['account'] = true;
 		// We will store original email, just for records.
 		if( isset( $attributes['mail'] ) ){
 			$data['meta']['original_mail'] = $attributes['mail'][0];
 		}
+		// If we get OIB, we will store it.
 		if( isset( $attributes['hrEduPersonOIB'] ) ){
 			$data['meta']['oib'] = $attributes['hrEduPersonOIB'][0];
 		}
+		// If we get persistant ID, we will store it.
 		if( isset( $attributes['hrEduPersonPersistentID'] ) ){
 			$data['meta']['persistent_id'] = $attributes['hrEduPersonPersistentID'][0];
 		}
