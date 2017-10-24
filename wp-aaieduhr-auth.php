@@ -14,7 +14,6 @@
  */
 
 // TODO mivanci
-// Create readme: https://generatewp.com/plugin-readme/
 // Consider deleting users created using AAI@EduHr on plugin deactivation.
 
 // Ensure that the plugin is run under WordPress.
