@@ -60,8 +60,9 @@ class WP_AAIEduHr_Options {
 	public function initialize_settings(  ) {
 
 		// Register the plugin settings.
-		// 'option_group' is the same as the menu slug used for the plugin settings page.
-		register_setting( 'WP_AAIEduHr_Auth_Settings', 'wp_aaieduhr_auth_settings' );
+		// 'option_group' is the same as the menu slug used for the plugin settings page. Also include a call for basic
+        // data sanitization.
+		register_setting( 'WP_AAIEduHr_Auth_Settings', 'wp_aaieduhr_auth_settings', [$this, 'sanitize_input'] );
 
 		// For convenience, let's use section to group our main configuration options.
 		add_settings_section(
@@ -105,6 +106,32 @@ class WP_AAIEduHr_Options {
 		);
 
 	}
+
+	/**
+     * Sanitize input data for options.
+     *
+	 * @param $input
+	 *
+	 * @return array
+	 */
+	public function sanitize_input( $input ) {
+		// Create our array for storing the sanitized options
+		$output = array();
+
+		// Loop through each of the incoming options
+		foreach( $input as $key => $value ) {
+
+			// Check to see if the current option has a value. If so, process it.
+			if( isset( $input[$key] ) ) {
+
+				$output[$key] = esc_attr( $input[ $key ] );
+
+			}
+
+		}
+
+		return $output;
+    }
 
 	/**
 	 * Callback used to generate HTML for main configuration settings section.
@@ -217,6 +244,7 @@ class WP_AAIEduHr_Options {
         // simpleSAMLPhp path should be valid, file should exists, and simpleSAMLphp class should be loaded.
         if ( ! isset($this->data['simplesamlphp_path']) ||
              ! file_exists($this->data['simplesamlphp_path']) ||
+             ! is_file($this->data['simplesamlphp_path']) ||
              ! $this->load_simpleSAMLphp( ) ) {
             $this->validation_message .= __(' Can not load simpleSAMLphp.', 'wp-aaieduhr-auth');
 	        $this->are_valid = false;;
