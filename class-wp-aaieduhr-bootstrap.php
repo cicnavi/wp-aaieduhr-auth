@@ -29,6 +29,12 @@ class WP_AAIEduHr_Bootstrap {
 	 */
 	protected  static $page_definitions;
 
+	/**
+     * Plugin basename, used to define Settings link for plugin options.
+	 * @var string
+	 */
+	protected static $plugin_basename;
+
 	// Don't allow instantiation from outside.
 	protected function __construct() {
 
@@ -36,8 +42,12 @@ class WP_AAIEduHr_Bootstrap {
 
 	/**
 	 * Initialize the plugin.
+     *
+     * @param string The basename of the plugin, used for Settings link for plugin options.
 	 */
-	public static function init() {
+	public static function init( $plugin_basename ) {
+
+	    static::$plugin_basename = $plugin_basename;
 
 		// Include necessary files.
 		foreach ( static::$files_to_include as $file_name ) {
@@ -50,7 +60,7 @@ class WP_AAIEduHr_Bootstrap {
 		WP_AAIEduHr_Shortcodes::init();
 
 		// Prepare plugin options.
-		$options = new WP_AAIEduHr_Options();
+		$options = new WP_AAIEduHr_Options( static::$plugin_basename );
 
 		// Create plugin instance using available options.
 		$core = new WP_AAIEduHr_Core($options);

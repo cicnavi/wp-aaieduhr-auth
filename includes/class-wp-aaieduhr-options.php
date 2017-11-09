@@ -33,9 +33,19 @@ class WP_AAIEduHr_Options {
 	public $validation_message = ' >>';
 
 	/**
-	 * WP_AAIEduHr_Options constructor.
+     * The basename of the plugin.
+	 * @var
 	 */
-	public function __construct() {
+	protected $plugin_basename;
+
+	/**
+	 * WP_AAIEduHr_Options constructor.
+     *
+     * @param string The basename of the plugin.
+	 */
+	public function __construct( $plugin_basename ) {
+
+        $this->plugin_basename = $plugin_basename;
 
 		// Initialize plugin settings
 		add_action( 'admin_init', [$this, 'initialize_settings'] );
@@ -302,7 +312,7 @@ class WP_AAIEduHr_Options {
 		$new_links = array();
 
 		// Settings page link
-		if ( current_user_can( 'manage_options' ) ) {
+		if ( $this->plugin_basename == $file && current_user_can( 'manage_options' ) ) {
 			$new_links['settings'] = '<a href="' .
                                      esc_url( add_query_arg( array( 'page' => 'WP_AAIEduHr_Auth_Settings' ),
                                          admin_url('options-general.php'))) . '">' .
