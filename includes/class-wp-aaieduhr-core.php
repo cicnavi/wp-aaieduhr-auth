@@ -276,7 +276,11 @@ class WP_AAIEduHr_Core {
 		$data['username'] = $attributes['hrEduPersonUniqueID'][0];
 
 		// Email will be the same as user ID, so we basically avoid email duplication (which WordPress won't allow).
-		$data['email'] = $attributes['hrEduPersonUniqueID'][0];
+		if( isset( $attributes['mail'] ) ){
+			$data['email'] = $attributes['mail'][0];
+		} else {
+			$data['email'] = $attributes['hrEduPersonUniqueID'][0];
+		}
 
 		if ( isset( $attributes['givenName'] ) ) {
 			$data['first_name'] = sanitize_text_field( $attributes['givenName'][0] );
