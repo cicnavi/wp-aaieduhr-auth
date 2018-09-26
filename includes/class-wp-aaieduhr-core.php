@@ -167,8 +167,10 @@ class WP_AAIEduHr_Core {
 		wp_set_auth_cookie( $user->ID );
 		do_action( 'wp_login', $user->user_login );
 
+
 		// Users are logged in, so we can redirect them to appropriate page.
 		$this->redirect_logged_in_user();
+		exit;
 	}
 
 	/**
@@ -222,8 +224,11 @@ class WP_AAIEduHr_Core {
 	 */
 	public function redirect_after_logout() {
 
-		// We will redirect users to our custom page to show them appropriate logout message.
-		$redirect_url = WP_AAIEduHr_Helper::get_permalink_by_slug('aaieduhr-auth', [ 'code' => 'logout' ] );
+		// URL to redirect users after logout. Instead of using custom page to show logout message, redierct to
+		// site URL and use .
+		// $redirect_url = WP_AAIEduHr_Helper::get_permalink_by_slug('aaieduhr-auth', [ 'code' => 'logout' ] );
+
+		$redirect_url = WP_AAIEduHr_Helper::get_site_url( [ 'code' => 'logout' ] );
 
 		$ssp = new SimpleSAML_Auth_Simple( $this->options->get()['service_type'] );
 
@@ -238,7 +243,7 @@ class WP_AAIEduHr_Core {
 
 	/**
 	 * Redirects the user to the correct page depending on whether he / she
-	 * is an admin or not.
+	 * is an admin or not, and also if MultiSite feature is used.
 	 *
 	 * @param string $redirect_to An optional redirect_to URL for admin users
 	 */

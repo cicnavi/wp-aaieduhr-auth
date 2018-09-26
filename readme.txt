@@ -3,7 +3,7 @@ Contributors: cicnavi
 Tags: authentication, AAI@EduHr, Srce
 Requires at least: 4.8.2
 Tested up to: 4.9
-Stable tag: 0.0.5
+Stable tag: 0.0.6
 Requires PHP: 5.6.* or later
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -35,6 +35,12 @@ Visit [official AAI@EduHr site](http://www.aaiedu.hr/za-davatelje-usluga/za-web-
 4. Visit 'Settings > WP AAI@EduHr Auth' and enter appropriate parameters. (You can always edit these later.)
 
 == Changelog ==
+
+= 0.0.6 =
+* In multisite environment ensure label 'Email' when adding existing users to the site.
+* In multisite environment enable usernames to be emails when adding new users to the site.
+* Disable custom page creation used for showing auth messages and errors.
+* Enable authentication alerts used to show auth messages.
 
 = 0.0.5 =
 * Use email from 'email' attribute instead of using 'hrEduPersonUniqueID'

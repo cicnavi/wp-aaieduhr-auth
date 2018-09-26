@@ -75,6 +75,71 @@ class WP_AAIEduHr_Helper {
 	}
 
 	/**
+	 * Finds and returns a matching CSS class for the given error or auth code.
+	 *
+	 * @param string $code The error code to look up.
+	 *
+	 * @return string      CSS class.
+	 */
+	public static function get_code_css_class( $code ) {
+
+		switch ( $code ) {
+
+			case 'no_unique_id':
+				return 'danger';
+
+			case 'user_creation_disabled':
+				return 'warning';
+
+			case 'username_exists':
+				return 'warning';
+
+			case 'email_invalid':
+				return 'danger';
+
+			case 'existing_user_email':
+				return 'warning';
+
+			case 'realm_not_allowed':
+				return 'warning';
+
+			case 'simplesamlphp_not_loaded':
+				return 'danger';
+
+			case 'disabled_password_manipulation':
+				return 'danger';
+
+			case 'registration_disabled':
+				return 'danger';
+
+			case 'login':
+				return 'success';
+
+			case 'logout':
+				return 'success';
+
+			case 'error':
+				return 'warning';
+
+			default:
+				break;
+		}
+
+		return 'warning';
+	}
+
+	/**
+	 * Get site URL together with provided query arguments.
+	 *
+	 * @param array $query_args Optional array of query arguments to put in URL
+	 *
+	 * @return string
+	 */
+	public static function get_site_url( $query_args = [] ) {
+		return add_query_arg( $query_args, get_site_url() );
+	}
+
+	/**
 	 * Renders the contents of the given template to a string and returns it.
 	 *
 	 * @param string $template_name The name of the template to render (without .php)
@@ -106,6 +171,73 @@ class WP_AAIEduHr_Helper {
 	}
 
 	/**
+	 * Build an array of error messages using error codes from query param.
+	 *
+	 * @return array
+	 */
+	public static function resolve_error_codes() {
+		$error_codes = [];
+
+		if ( isset( $_GET['errors'] ) ) {
+			// Error message codes will be given as GET parameter, as a comma separated list.
+			$error_codes = explode( ',', $_GET['errors'] );
+		}
+
+		return $error_codes;
+	}
+
+	/**
+	 * Build an array of error messages using error codes from query param.
+	 *
+	 * @return array
+	 */
+	public static function resolve_error_messages() {
+		$errors = [];
+		if ( isset( $_GET['errors'] ) ) {
+			$error_codes = static::resolve_error_codes();
+
+			// For each error code get the actual error message.
+			foreach ( $error_codes as $code ) {
+				$errors[] = static::get_error_message( $code );
+			}
+		}
+		return $errors;
+	}
+
+	/**
+	 * Get a string representing the message code.
+	 *
+	 * @return array
+	 */
+	public static function resolve_auth_message_code() {
+
+		$code = '';
+
+		if ( isset( $_GET['code'] ) ) {
+			$code = $_GET['code'];
+		}
+
+		return $code;
+	}
+
+	/**
+	 * Get a string related to authentication message.
+	 *
+	 * @return array
+	 */
+	public static function resolve_auth_message() {
+
+		$auth_message = '';
+		$code = static::resolve_auth_message_code();
+
+		if ( $code ) {
+			$auth_message = WP_AAIEduHr_Helper::get_message( $code );
+		}
+
+		return $auth_message;
+	}
+
+	/**
 	 * Redirect to custom page and show appropriate message according to the provided parameters.
 	 *
 	 * @param string $code Message code.
@@ -120,7 +252,11 @@ class WP_AAIEduHr_Helper {
 			$query_args['errors'] = $errors;
 		}
 
-		$redirect_url = static::get_permalink_by_slug($slug, $query_args);
+	/*
+	 * Instead of redirecting to custom page always redirect to front page along with appropriate query args.
+	 * $redirect_url = static::get_permalink_by_slug($slug, $query_args); */
+
+		$redirect_url = static::get_site_url( $query_args );
 
 		wp_redirect( $redirect_url );
 		exit;
