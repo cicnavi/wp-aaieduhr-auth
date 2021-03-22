@@ -1,22 +1,6 @@
 <?php
-/**
- * User: Marko Ivančić marko.ivancic@srce.hr
- * Date: 7/27/2017
- *
- * Plugin Name:       WP AAI@EduHr Auth
- * Description:       Plugin that replaces the default WordPress authentication with SimpleSAMLphp AAI@EduHr.
- * Version:           0.0.1
- * Author:            Marko Ivančić marko.ivancic@srce.hr
- * Author URI:          http://markoivancic.from.hr/
- * License:           GPL-2.0+
- * Text Domain:       wp-aaieduhr-auth
- */
 
-/**
- * Core class
- *
- * Class WP_AAIEduHr_Core
- */
+
 class WP_AAIEduHr_Core {
 	/**
 	 * Instance of plugin options.
@@ -46,7 +30,7 @@ class WP_AAIEduHr_Core {
 			// Options are not valid, so show notice in admin area that something is not right.
 			$class   = 'notice notice-warning';
 			$message = __( 'AAI@EduHr authentication is NOT applied. Please check WP AAI@EduHR Auth settings.', 'wp-aaieduhr-auth' ) .
-			           $this->options->validation_message;
+					   $this->options->validation_message;
 
 			WP_AAIEduHr_Helper::display_notice($message, $class);;
 		}

@@ -1,13 +1,17 @@
 <?php
 /**
- * User: Marko Ivančić marko.ivancic@srce.hr
- * Date: 7/27/2017
+ * WP AAI@EduHr Auth
  *
+ * @package           WPAAI@EduHr
+ * @author            Marko Ivancic
+ * @license           GPL-3.0+
+ *
+ * @wordpress-plugin
  * Plugin Name:       WP AAI@EduHr Auth
  * Plugin URI:        https://wordpress.org/plugins/wp-aaieduhr-auth/
  * Description:       Plugin that replaces the default WordPress authentication with SimpleSAMLphp AAI@EduHr.
- * Version:           0.0.6
- * Author:            Marko Ivančić
+ * Version:           0.0.7
+ * Author:            Marko Ivancic
  * Author URI:        https://markoivancic.from.hr/
  * License:           GPL-3.0+
  * Text Domain:       wp-aaieduhr-auth
@@ -30,4 +34,3 @@ WP_AAIEduHr_Bootstrap::init( $plugin_basename );
 // Register the plugin activation and deactivation hooks.
 register_activation_hook( __FILE__, array( 'WP_AAIEduHr_Bootstrap', 'plugin_activated' ) );
 register_deactivation_hook( __FILE__, array( 'WP_AAIEduHr_Bootstrap', 'plugin_deactivated' ) );
-

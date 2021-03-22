@@ -1,8 +1,5 @@
 <?php
-/**
- * User: Marko Ivančić marko.ivancic@srce.hr
- * Date: 13.10.2017.
- */
+
 
 class WP_AAIEduHr_Helper {
 

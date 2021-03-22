@@ -1,8 +1,5 @@
 <?php
-/**
- * User: Marko Ivančić marko.ivancic@srce.hr
- * Date: 12.10.2017.
- */
+
 
 class WP_AAIEduHr_Bootstrap {
 
@@ -30,7 +27,7 @@ class WP_AAIEduHr_Bootstrap {
 	protected  static $page_definitions;
 
 	/**
-     * Plugin basename, used to define Settings link for plugin options.
+	 * Plugin basename, used to define Settings link for plugin options.
 	 * @var string
 	 */
 	protected static $plugin_basename;
@@ -42,12 +39,12 @@ class WP_AAIEduHr_Bootstrap {
 
 	/**
 	 * Initialize the plugin.
-     *
-     * @param string The basename of the plugin, used for Settings link for plugin options.
+	 *
+	 * @param string The basename of the plugin, used for Settings link for plugin options.
 	 */
 	public static function init( $plugin_basename ) {
 
-	    static::$plugin_basename = $plugin_basename;
+		static::$plugin_basename = $plugin_basename;
 
 		// Include necessary files.
 		foreach ( static::$files_to_include as $file_name ) {
@@ -86,20 +83,20 @@ class WP_AAIEduHr_Bootstrap {
 		add_action('wp_enqueue_scripts', array( static::class, 'add_styles') );
 
 		// Modifications related to Multisite feature.
-        if ( is_multisite() ) {
-            // Ensure that label when adding existing users is always 'Email'
-	        add_action('user_new_form', array( static::class, 'rename_label_to_email'), 10, 2 );
-	        // Enable emails as usernames.
-	        add_filter('wpmu_validate_user_signup', array( static::class, 'enable_email_as_username'), 10, 2 );
-        }
+		if ( is_multisite() ) {
+			// Ensure that label when adding existing users is always 'Email'
+			add_action('user_new_form', array( static::class, 'rename_label_to_email'), 10, 2 );
+			// Enable emails as usernames.
+			add_filter('wpmu_validate_user_signup', array( static::class, 'enable_email_as_username'), 10, 2 );
+		}
 	}
 
 	/**
 	 * Redirect and show message that working with passwords is disabled, since we want to use AAI@EduHr
 	 */
 	public static function show_disabled_password_manipulation_message ( ) {
-	    WP_AAIEduHr_Helper::show_message('error', 'disabled_password_manipulation' );
-    }
+		WP_AAIEduHr_Helper::show_message('error', 'disabled_password_manipulation' );
+	}
 
 	/**
 	 * Redirect and show message that working with passwords is disabled, since we want to use AAI@EduHr
@@ -109,7 +106,7 @@ class WP_AAIEduHr_Bootstrap {
 	}
 
 	/**
-     * Remove some input in 'Add New User' form.
+	 * Remove some input in 'Add New User' form.
 	 * @param string $form_version
 	 */
 	public static function remove_unnecessary_input_when_creating_users ( $form_version = '' ) {
@@ -120,7 +117,7 @@ class WP_AAIEduHr_Bootstrap {
 			<script type="text/javascript">
 				jQuery(document).ready(function($) {
 					$('#send_user_notification').parents('td').parents('tr').remove();
-                    $('.user-pass1-wrap').hide();
+					$('.user-pass1-wrap').hide();
 				});
 			</script>
 		<?php
@@ -174,7 +171,7 @@ class WP_AAIEduHr_Bootstrap {
 	public static function plugin_activated( ) {
 
 		// Create defined pages.
-        // NOTE Custom page creation for auth messages is disabled from 0.0.6
+		// NOTE Custom page creation for auth messages is disabled from 0.0.6
 /*		foreach ( static::$page_definitions as $slug => $page ) {
 			// Check that the page doesn't exist already
 			$query = new WP_Query( 'pagename=' . $slug );
@@ -196,22 +193,22 @@ class WP_AAIEduHr_Bootstrap {
 	}
 
 	/**
-     * In MultiSite environment, ensure 'Email' label when adding existing users to site.
-     *
+	 * In MultiSite environment, ensure 'Email' label when adding existing users to site.
+	 *
 	 * @param string $form_version
 	 */
 	public static function rename_label_to_email( $form_version = '' )
 	{
-	    // Only apply when adding existing users.
+		// Only apply when adding existing users.
 		if ( 'add-existing-user' == $form_version ):
 
 			// Ensure that label is always 'Email'.
 			?>
-            <script type="text/javascript">
-                jQuery(document).ready(function($) {
-                    $('label[for="adduser-email"]').text("Email");
-                });
-            </script>
+			<script type="text/javascript">
+				jQuery(document).ready(function($) {
+					$('label[for="adduser-email"]').text("Email");
+				});
+			</script>
 		<?php
 		endif;
 
@@ -237,8 +234,8 @@ class WP_AAIEduHr_Bootstrap {
 	}
 
 	/**
-     * This is a copy of original wpmu_validate_user_signup action, without a rule for lowercase letters (a-z) and numbers.
-     *
+	 * This is a copy of original wpmu_validate_user_signup action, without a rule for lowercase letters (a-z) and numbers.
+	 *
 	 * @param $user_name
 	 * @param $user_email
 	 *
@@ -359,44 +356,44 @@ class WP_AAIEduHr_Bootstrap {
 	}
 
 	public static function add_footer_content()
-    {
-	    // Resolve error messages
-	    $error_codes = WP_AAIEduHr_Helper::resolve_error_codes();
+	{
+		// Resolve error messages
+		$error_codes = WP_AAIEduHr_Helper::resolve_error_codes();
 
-	    // Resolve auth messages
-	    $auth_message_code = WP_AAIEduHr_Helper::resolve_auth_message_code();
+		// Resolve auth messages
+		$auth_message_code = WP_AAIEduHr_Helper::resolve_auth_message_code();
 
-	    // Show appropriate alert with resolved messages.
-	    if ( ! empty( $error_codes ) || $auth_message_code != '' ) {
-		    echo '<div class="aaieduhr-alert">';
-		    echo '<span class="closebtn" onclick="this.parentElement.style.display=\'none\';">&times;</span>';
-		    echo '<p><strong>AAI@EduHr</strong></p>';
+		// Show appropriate alert with resolved messages.
+		if ( ! empty( $error_codes ) || $auth_message_code != '' ) {
+			echo '<div class="aaieduhr-alert">';
+			echo '<span class="closebtn" onclick="this.parentElement.style.display=\'none\';">&times;</span>';
+			echo '<p><strong>AAI@EduHr</strong></p>';
 
-		    if ($auth_message_code) {
-			    echo '<div class="' . WP_AAIEduHr_Helper::get_code_css_class( $auth_message_code ) . '">';
-			    echo WP_AAIEduHr_Helper::get_message( $auth_message_code ) . '<br>';
-			    echo '</div>';
-		    }
+			if ($auth_message_code) {
+				echo '<div class="' . WP_AAIEduHr_Helper::get_code_css_class( $auth_message_code ) . '">';
+				echo WP_AAIEduHr_Helper::get_message( $auth_message_code ) . '<br>';
+				echo '</div>';
+			}
 
-		    if ( ! empty( $error_codes ) ) {
-			    foreach ( $error_codes as $error_code ) {
-				    echo '<div class="' . WP_AAIEduHr_Helper::get_code_css_class( $error_code ) . '">';
-				    echo WP_AAIEduHr_Helper::get_error_message( $error_code ) . '<br>';
-				    echo '</div>';
-			    }
-            }
-		    echo '</div>';
-        }
+			if ( ! empty( $error_codes ) ) {
+				foreach ( $error_codes as $error_code ) {
+					echo '<div class="' . WP_AAIEduHr_Helper::get_code_css_class( $error_code ) . '">';
+					echo WP_AAIEduHr_Helper::get_error_message( $error_code ) . '<br>';
+					echo '</div>';
+				}
+			}
+			echo '</div>';
+		}
 
-    }
+	}
 
 	/**
 	 * Enqueue custom CSS.
 	 */
-    public static function add_styles() {
-	    wp_register_style('wp-aaieduhr-auth-styles', plugin_dir_url(static::$plugin_basename) . 'css/styles.css' );
-	    wp_enqueue_style('wp-aaieduhr-auth-styles');
-    }
+	public static function add_styles() {
+		wp_register_style('wp-aaieduhr-auth-styles', plugin_dir_url(static::$plugin_basename) . 'css/styles.css' );
+		wp_enqueue_style('wp-aaieduhr-auth-styles');
+	}
 
 	/**
 	 * Code to execute when plugin is deactivated.
@@ -423,8 +420,8 @@ class WP_AAIEduHr_Bootstrap {
 		/*
 		// Consider deleting users created using AIA@EduHr.
 		foreach ($users as $user) {
-		    // Beware that this will also delete their posts since we don't provide the $reassign
-		    // parameter (the ID of the user to which to assign all post from the user to be deleted).
+			// Beware that this will also delete their posts since we don't provide the $reassign
+			// parameter (the ID of the user to which to assign all post from the user to be deleted).
 			wp_delete_user($user->ID, $reassign = false);
 		}
 		*/
