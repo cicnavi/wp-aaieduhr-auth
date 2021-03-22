@@ -277,7 +277,7 @@ class WP_AAIEduHr_Core {
 		else {
 			$data['first_name'] = '';
 		}
-		if ( isset( $attributes['givenName'] ) ) {
+		if ( isset( $attributes['sn'] ) ) {
 			$data['last_name'] = sanitize_text_field( $attributes['sn'][0] );
 		}
 		else {
