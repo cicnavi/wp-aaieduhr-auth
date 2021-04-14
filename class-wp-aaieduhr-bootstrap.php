@@ -76,6 +76,11 @@ class WP_AAIEduHr_Bootstrap {
 		// Remove some inputs when adding new users manually using the 'Add New User' form in WordPress.
 		add_action('user_new_form', array( static::class, 'remove_unnecessary_input_when_creating_users'), 10, 2 );
 
+		// Remove password reset options
+		add_action('edit_user_profile', array( static::class, 'remove_unnecessary_input_when_editing_users'), 10, 2 );
+		add_filter('bulk_actions-users', array( static::class, 'remove_unnecessary_bulk_actions_when_listing_users' ), 10, 2 );
+		add_filter('user_row_actions', array( static::class, 'remove_unnecessary_actions_when_listing_users' ), 10, 2 );
+
 		// Add custom footer.
 		add_action('wp_footer', array( static::class, 'add_footer_content') );
 
@@ -122,6 +127,49 @@ class WP_AAIEduHr_Bootstrap {
 			</script>
 		<?php
 		endif;
+	}
+
+	/**
+	 * Remove some input in 'Add New User' form.
+	 * @param string $form_version
+	 */
+	public static function remove_unnecessary_input_when_editing_users ( $profileuser ) {
+        // Remove 'Password Reset' option using jQuery.
+        // Dirty, but the original form is hardcoded :/.
+        ?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    $('#generate-reset-link').parents('td').parents('tr').remove();
+                });
+            </script>
+		<?php
+	}
+
+	/**
+     * Disable password resetting bulk action.
+     *
+	 * @param $actions
+	 *
+	 * @return mixed
+	 */
+	public static function remove_unnecessary_bulk_actions_when_listing_users( $actions ) {
+	    // Disable bulk action for resetting password.
+	    unset($actions['resetpassword']);
+	    return $actions;
+	}
+
+
+	/**
+	 * Disable password resetting for single user (on a single row).
+	 *
+	 * @param $actions
+	 *
+	 * @return mixed
+	 */
+	public static function remove_unnecessary_actions_when_listing_users( $actions, $user_object ) {
+		// Disable action for resetting password.
+		unset($actions['resetpassword']);
+		return $actions;
 	}
 
 	/**
