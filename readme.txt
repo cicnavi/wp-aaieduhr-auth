@@ -3,7 +3,7 @@ Contributors: cicnavi
 Tags: authentication, AAI@EduHr, Srce
 Requires at least: 4.8.2
 Tested up to: 5.7
-Stable tag: 0.0.7
+Stable tag: 0.0.8
 Requires PHP: 5.6.* or later
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -35,6 +35,9 @@ Visit [official AAI@EduHr site](http://www.aaiedu.hr/za-davatelje-usluga/za-web-
 4. Visit 'Settings > WP AAI@EduHr Auth' and enter appropriate parameters. (You can always edit these later.)
 
 == Changelog ==
+= 0.0.8 =
+* Remove password reset option on user edit
+
 = 0.0.7 =
 * Update plugin header comment
 
