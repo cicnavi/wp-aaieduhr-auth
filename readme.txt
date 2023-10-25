@@ -2,7 +2,7 @@
 Contributors: cicnavi
 Tags: authentication, AAI@EduHr, Srce
 Requires at least: 4.8.2
-Tested up to: 6.1.1
+Tested up to: 6.3.2
 Stable tag: 0.0.8
 Requires PHP: 5.6.* or later
 License: GPLv3 or later

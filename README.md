@@ -1,6 +1,6 @@
 # WP AAI@EduHr Auth
 ## About
-Wordpress Plugin which can be used to authenticate to WordPress 
+WordPress Plugin which can be used to authenticate to WordPress 
 using AAI@EduHr authentication system. 
 
 ## Installation
