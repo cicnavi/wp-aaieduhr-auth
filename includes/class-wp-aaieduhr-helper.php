@@ -8,7 +8,7 @@ class WP_AAIEduHr_Helper {
 	 *
 	 * @param $message_code
 	 *
-	 * @return string|void
+	 * @return string
 	 */
 	public static function get_message( $message_code ) {
 		switch ( $message_code ) {
@@ -82,41 +82,23 @@ class WP_AAIEduHr_Helper {
 
 		switch ( $code ) {
 
+			case 'email_invalid':
+			case 'simplesamlphp_not_loaded':
+			case 'disabled_password_manipulation':
+			case 'registration_disabled':
 			case 'no_unique_id':
 				return 'danger';
 
+			case 'username_exists':
+			case 'existing_user_email':
+			case 'realm_not_allowed':
+			case 'error':
 			case 'user_creation_disabled':
 				return 'warning';
 
-			case 'username_exists':
-				return 'warning';
-
-			case 'email_invalid':
-				return 'danger';
-
-			case 'existing_user_email':
-				return 'warning';
-
-			case 'realm_not_allowed':
-				return 'warning';
-
-			case 'simplesamlphp_not_loaded':
-				return 'danger';
-
-			case 'disabled_password_manipulation':
-				return 'danger';
-
-			case 'registration_disabled':
-				return 'danger';
-
+			case 'logout':
 			case 'login':
 				return 'success';
-
-			case 'logout':
-				return 'success';
-
-			case 'error':
-				return 'warning';
 
 			default:
 				break;
@@ -220,7 +202,7 @@ class WP_AAIEduHr_Helper {
 	/**
 	 * Get a string related to authentication message.
 	 *
-	 * @return array
+	 * @return string|null
 	 */
 	public static function resolve_auth_message() {
 
@@ -245,7 +227,7 @@ class WP_AAIEduHr_Helper {
 
 		$query_args['code'] = $code;
 
-		if ( isset( $errors ) && ! empty( $errors ) ){
+		if (! empty( $errors )){
 			$query_args['errors'] = $errors;
 		}
 
@@ -274,9 +256,7 @@ class WP_AAIEduHr_Helper {
 
 		$page_permalink = get_permalink( $page );
 
-		$redirect_url = add_query_arg( $query_args , $page_permalink );
-
-		return $redirect_url;
+		return add_query_arg( $query_args , $page_permalink );
 	}
 
 	/**

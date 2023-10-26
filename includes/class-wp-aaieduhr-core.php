@@ -2,6 +2,8 @@
 
 
 class WP_AAIEduHr_Core {
+	const COOKIE_KEY_AABS = 'wp-aaieduhr-auth-aabs';
+
 	/**
 	 * Instance of plugin options.
 	 *
@@ -14,25 +16,44 @@ class WP_AAIEduHr_Core {
 		// Save plugin options so we can use them.
 		$this->options = $options;
 
-		// If options are valid, start using AAI@EduHr authentication.
-		if ( $this->options->are_valid ) {
+		// Check if plugin options are valid at all.
+		if ( !$this->options->are_valid ) {
 
-			// Start using AAI@EduHr authentication.
+			// Options are not valid, so show a notice in admin area that something is not right.
+			$class   = 'notice notice-warning';
+			$message = __(
+					'AAI@EduHr authentication is NOT applied. Please check WP AAI@EduHR Auth settings.',
+					'wp-aaieduhr-auth'
+				) . $this->options->validation_message;
+
+			WP_AAIEduHr_Helper::display_notice($message, $class);
+		}
+		// Check if AAI@EduHr authentication is being bypassed in current request
+		elseif ( $this->is_aaieduhr_auth_being_bypassed() ) {
+
+			// Set the cookie, so we can check the bypass has been initiated in future requests.
+			setcookie(self::COOKIE_KEY_AABS, '1', strtotime('+1 hour'), SITECOOKIEPATH);
+		}
+		// Check if AAI@EduHr authentication has been bypassed previously
+		elseif ($this->has_aaieduhr_auth_been_bypassed_for_current_session()) {
+
+			$class   = 'notice notice-warning';
+			$message = __( 'AAI@EduHr authentication has been bypassed for current user.', 'wp-aaieduhr-auth' );
+
+			WP_AAIEduHr_Helper::display_notice($message, $class);
+
+			// Add an action which will check if we need to clear cookies related to aabs.
+			add_action( 'init', array( static::class, 'clear_cookies_if_needed' ) );
+		}
+		// Options are valid, start using AAI@EduHr authentication.
+		else {
+
 			$this->apply();
 
 			$class   = 'notice notice-success';
 			$message = __( 'AAI@EduHr authentication is applied. Users need to use AAI@EduHr identities to log in.', 'wp-aaieduhr-auth' );
 
 			WP_AAIEduHr_Helper::display_notice($message, $class);
-
-		} else {
-
-			// Options are not valid, so show notice in admin area that something is not right.
-			$class   = 'notice notice-warning';
-			$message = __( 'AAI@EduHr authentication is NOT applied. Please check WP AAI@EduHR Auth settings.', 'wp-aaieduhr-auth' ) .
-					   $this->options->validation_message;
-
-			WP_AAIEduHr_Helper::display_notice($message, $class);;
 		}
 
 	}
@@ -321,4 +342,41 @@ class WP_AAIEduHr_Core {
 		}
 	}
 
+	/**
+	 * Check if AAI@EduHr Auth is being bypassed in current request. This can be done by using a previously configured
+	 * secret as a GET parameter in wp-login.php route, (/wp-login.php?aabs=some-secret)
+	 * @return bool
+	 */
+	protected function is_aaieduhr_auth_being_bypassed() {
+		// If request parameter is present and not empty, and
+		// if option is set and not empty, and
+		// if they are equal
+		if (
+			isset($_GET[WP_AAIEduHr_Options::KEY_AABS]) && !empty($_GET[WP_AAIEduHr_Options::KEY_AABS]) &&
+			isset($this->options->get()[WP_AAIEduHr_Options::KEY_AABS]) && !empty($this->options->get()[WP_AAIEduHr_Options::KEY_AABS]) &&
+			$_GET[WP_AAIEduHr_Options::KEY_AABS] === $this->options->get()[WP_AAIEduHr_Options::KEY_AABS]
+		) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * @return bool
+	 */
+	protected function has_aaieduhr_auth_been_bypassed_for_current_session() {
+		return isset($_COOKIE[self::COOKIE_KEY_AABS]);
+	}
+
+	/**
+	 *
+	 */
+	public static function clear_cookies_if_needed ( ) {
+		// If the user is logged in, we can clear the aabs cookie.
+
+		if (is_user_logged_in()) {
+			setcookie(self::COOKIE_KEY_AABS, null, strtotime('-1 day'), SITECOOKIEPATH);
+		}
+	}
 }

@@ -9,6 +9,11 @@
 class WP_AAIEduHr_Options {
 
 	/**
+	 * Option key for AAI@EduHr Authn Bypass Secret
+	 */
+	const KEY_AABS = 'aabs';
+
+	/**
 	 * Contains actual options.
 	 *
 	 * @var mixed|void
@@ -38,7 +43,7 @@ class WP_AAIEduHr_Options {
 	/**
 	 * WP_AAIEduHr_Options constructor.
 	 *
-	 * @param string The basename of the plugin.
+	 * @param string $plugin_basename The basename of the plugin.
 	 */
 	public function __construct( $plugin_basename ) {
 
@@ -108,6 +113,14 @@ class WP_AAIEduHr_Options {
 			'allowed_realms',
 			__( 'Allowed realms', 'wp-aaieduhr-auth' ),
 			array( $this, 'render_input_for_allowed_realms'),
+			'WP_AAIEduHr_Auth_Settings',
+			'wp_aaieduhr_auth_plugin_settings_page_main_configuration'
+		);
+
+		add_settings_field(
+			self::KEY_AABS,
+			__( 'AAI@EduHr Auth Bypass Secret', 'wp-aaieduhr-auth' ),
+			array( $this, 'render_input_for_aabs'),
 			'WP_AAIEduHr_Auth_Settings',
 			'wp_aaieduhr_auth_plugin_settings_page_main_configuration'
 		);
@@ -218,6 +231,37 @@ class WP_AAIEduHr_Options {
 	}
 
 	/**
+	 * aabs - AAI@EduHr Auth Bypass Secret
+	 * @return void
+	 */
+	public function render_input_for_aabs(  ) {
+		?>
+        <input type='text'
+               class="regular-text"
+               name='wp_aaieduhr_auth_settings[aabs]'
+               value='<?php echo isset($this->data[self::KEY_AABS]) ? $this->data[self::KEY_AABS] : ''; ?>'>
+        <p class="description">
+			<?php
+
+			_e('Secret which can be used to bypass AAI@EduHr authentication, so that a user can authenticate using
+                    regular WordPress user / login form. <br>
+                    This can be used in scenarios when a site maintainer does not have AAI@EduHr identity, but has to 
+                    be able to, for example, get to the site admin dashboard.  <br>
+                    To show WordPress login form, set \'aabs\' query parameter in wp-login route, like:
+                    /wp-login.php?aabs=some-secret<br>
+                    Make sure that the secret is long-enough, hard-to-guess and with no chars which have special meaning in URLs. 
+                    ', 'wp-aaieduhr-auth');
+
+			if (!isset($this->data[self::KEY_AABS]) || empty($this->data[self::KEY_AABS])) {
+				_e('<br>Example secret to use: ' . wp_generate_password(32, false), 'wp-aaieduhr-auth');
+			}
+			?>
+        </p>
+		<?php
+
+	}
+
+	/**
 	 * Add admin menu for plugin and generate page for plugin options.
 	 */
 	public function add_admin_menu(  ) {
@@ -248,13 +292,13 @@ class WP_AAIEduHr_Options {
 	 */
 	protected function validate()
 	{
-		// simpleSAMLPhp path should be valid, file should exists, and simpleSAMLphp class should be loaded.
+		// simpleSAMLPhp path should be valid, file should exist, and simpleSAMLphp class should be loaded.
 		if ( ! isset($this->data['simplesamlphp_path']) ||
 			 ! file_exists($this->data['simplesamlphp_path']) ||
 			 ! is_file($this->data['simplesamlphp_path']) ||
 			 ! $this->load_simpleSAMLphp( ) ) {
 			$this->validation_message .= __(' Can not load simpleSAMLphp.', 'wp-aaieduhr-auth');
-			$this->are_valid = false;;
+			$this->are_valid = false;
 		}
 
 		// Service type must be valid.
