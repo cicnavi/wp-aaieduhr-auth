@@ -35,7 +35,7 @@ Visit [official AAI@EduHr site](http://www.aaiedu.hr/za-davatelje-usluga/za-web-
 4. Visit 'Settings > WP AAI@EduHr Auth' and enter appropriate parameters. (You can always edit these later.)
 
 == Changelog ==
-= 0.0.10
+= 0.0.10 =
 * Fix wp_login action call so that it includes user instance
 
 = 0.0.9 =
