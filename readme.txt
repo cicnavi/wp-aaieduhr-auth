@@ -3,7 +3,7 @@ Contributors: cicnavi
 Tags: authentication, AAI@EduHr, Srce
 Requires at least: 4.8.2
 Tested up to: 6.3.2
-Stable tag: 0.0.9
+Stable tag: 0.0.10
 Requires PHP: 5.6.* or later
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -35,6 +35,9 @@ Visit [official AAI@EduHr site](http://www.aaiedu.hr/za-davatelje-usluga/za-web-
 4. Visit 'Settings > WP AAI@EduHr Auth' and enter appropriate parameters. (You can always edit these later.)
 
 == Changelog ==
+= 0.0.10
+* Fix wp_login action call so that it includes user instance
+
 = 0.0.9 =
 * Enable functionality to bypass AAI@EduHr authentication, so that a user can authenticate using regular WordPress
 user / login form. This can be used in scenarios when a site maintainer does not have AAI@EduHr identity, but has

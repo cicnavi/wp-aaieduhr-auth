@@ -170,7 +170,7 @@ class WP_AAIEduHr_Core {
 		// https://codex.wordpress.org/Function_Reference/wp_set_current_user
 		// Set auth cookie so user stays authenticated on future requests.
 		wp_set_auth_cookie( $user->ID );
-		do_action( 'wp_login', $user->user_login );
+		do_action( 'wp_login', $user->user_login, $user );
 
 
 		// Users are logged in, so we can redirect them to appropriate page.
