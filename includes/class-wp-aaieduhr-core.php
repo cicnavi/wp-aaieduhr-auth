@@ -94,10 +94,10 @@ class WP_AAIEduHr_Core {
 		}
 
 		// Create new SSP instance.
-		$ssp = new SimpleSAML_Auth_Simple( $this->options->get()['service_type'] );
+		$ssp = new \SimpleSAML\Auth\Simple( $this->options->get()['service_type'] );
 
 		// User must be authenticated using AAI@EduHr
-		$ssp->requireAuth();
+		$ssp->requireAuth(['ReturnTo' => wp_login_url()]);
 
 		// Get the user attributes from AAI@EduHr
 		$attributes = $ssp->getAttributes();
@@ -235,7 +235,7 @@ class WP_AAIEduHr_Core {
 
 		$redirect_url = WP_AAIEduHr_Helper::get_site_url( [ 'code' => 'logout' ] );
 
-		$ssp = new SimpleSAML_Auth_Simple( $this->options->get()['service_type'] );
+		$ssp = new \SimpleSAML\Auth\Simple( $this->options->get()['service_type'] );
 
 		if ( $ssp->isAuthenticated() ) {
 			$ssp->logout( $redirect_url );

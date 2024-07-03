@@ -2,9 +2,9 @@
 Contributors: cicnavi
 Tags: authentication, AAI@EduHr, Srce
 Requires at least: 4.8.2
-Tested up to: 6.5.0
-Stable tag: 0.0.10
-Requires PHP: 5.6.* or later
+Tested up to: 6.6.0
+Stable tag: 0.1.0
+Requires PHP: 7.4.* or later
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -35,6 +35,10 @@ Visit [official AAI@EduHr site](http://www.aaiedu.hr/za-davatelje-usluga/za-web-
 4. Visit 'Settings > WP AAI@EduHr Auth' and enter appropriate parameters. (You can always edit these later.)
 
 == Changelog ==
+= 0.1.0 =
+* Enable usage of newer versions of SimpleSAMLphp (v2.*)
+* PHP version requirement bumped from v5.6 to v7.4
+
 = 0.0.10 =
 * Fix wp_login action call so that it includes user instance
 

@@ -175,7 +175,7 @@ class WP_AAIEduHr_Options {
 			   value='<?php echo isset($this->data['simplesamlphp_path']) ? $this->data['simplesamlphp_path'] : ''; ?>'>
 
 		<p class="description">
-			<?php _e('For example: /var/www/simplesamlphp/lib/_autoload.php','wp-aaieduhr-auth'); ?>
+			<?php _e('For example: /var/www/simplesamlphp/src/_autoload.php','wp-aaieduhr-auth'); ?>
 		</p>
 		<?php
 
@@ -292,7 +292,7 @@ class WP_AAIEduHr_Options {
 	 */
 	protected function validate()
 	{
-		// simpleSAMLPhp path should be valid, file should exist, and simpleSAMLphp class should be loaded.
+		// simpleSAMLphp path should be valid, file should exist, and simpleSAMLphp class should be loaded.
 		if ( ! isset($this->data['simplesamlphp_path']) ||
 			 ! file_exists($this->data['simplesamlphp_path']) ||
 			 ! is_file($this->data['simplesamlphp_path']) ||
@@ -394,6 +394,6 @@ class WP_AAIEduHr_Options {
 	 */
 	private function load_simpleSAMLphp( ) {
 		require_once( $this->data['simplesamlphp_path'] );
-		return class_exists( 'SimpleSAML_Auth_Simple');
+		return class_exists( \SimpleSAML\Auth\Simple::class);
 	}
 }

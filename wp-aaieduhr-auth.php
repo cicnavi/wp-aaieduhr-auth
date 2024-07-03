@@ -10,7 +10,7 @@
  * Plugin Name:       WP AAI@EduHr Auth
  * Plugin URI:        https://wordpress.org/plugins/wp-aaieduhr-auth/
  * Description:       Plugin that replaces the default WordPress authentication with SimpleSAMLphp AAI@EduHr.
- * Version:           0.0.10
+ * Version:           0.1.0
  * Author:            Marko Ivancic
  * Author URI:        https://markoivancic.from.hr/
  * License:           GPL-3.0+
