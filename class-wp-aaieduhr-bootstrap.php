@@ -439,7 +439,12 @@ class WP_AAIEduHr_Bootstrap {
 	 * Enqueue custom CSS.
 	 */
 	public static function add_styles() {
-		wp_register_style('wp-aaieduhr-auth-styles', plugin_dir_url(static::$plugin_basename) . 'css/styles.css' );
+		wp_register_style(
+            'wp-aaieduhr-auth-styles',
+            plugin_dir_url(static::$plugin_basename) . 'css/styles.css',
+            [],
+            WP_AAIEDUHR_AUTH_VERSION,
+        );
 		wp_enqueue_style('wp-aaieduhr-auth-styles');
 	}
 
