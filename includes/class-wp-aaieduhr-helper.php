@@ -347,4 +347,18 @@ class WP_AAIEduHr_Helper {
 		}
 
 	}
+
+    public static function log(
+        string $message,
+        bool $isError = false,
+        string $prefix = WP_AAIEDUHR_AUTH_NAME . '-' . WP_AAIEDUHR_AUTH_VERSION . ': '
+    ): bool {
+
+        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+            $prefix = $isError ? 'ERROR: ' . $prefix : $prefix;
+            return error_log( $prefix . $message );
+        }
+
+        return false;
+    }
 }

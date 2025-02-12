@@ -24,7 +24,7 @@ class WP_AAIEduHr_Shortcodes {
 	 *
 	 * @return string  The shortcode output
 	 */
-	public static function render_auth_message( array $attributes, string $content = null ): string
+	public static function render_auth_message( array $attributes, ?string $content = null ): string
     {
 
         if ( ! wp_verify_nonce( WP_AAIEduHr_Helper::get_nonce(), WP_AAIEduHr_Helper::NONCE_ACTION ) ) {

@@ -22,6 +22,7 @@ declare(strict_types=1);
 // Ensure that the plugin is run under WordPress.
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 
+const WP_AAIEDUHR_AUTH_NAME = 'wp-aaieduhr-auth';
 const WP_AAIEDUHR_AUTH_VERSION = '0.2.0';
 
 // Plugin basename is used to define Settings link for plugin options.

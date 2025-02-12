@@ -15,6 +15,13 @@ class WP_AAIEduHr_Options {
 	 */
 	const KEY_AABS = 'aabs';
 
+    public const VALID_SERVICE_TYPES = [
+        'default-sp',
+        'proxy-sp',
+        'mfa-sp',
+        'fedlab-sp',
+    ];
+
 	/**
 	 * Contains actual options.
 	 *
@@ -179,7 +186,10 @@ class WP_AAIEduHr_Options {
 			   name="wp_aaieduhr_auth_settings[service_type]"
 			   value="<?php echo isset($this->data['service_type']) ? esc_attr($this->data['service_type']) : ''; ?>">
 		<p class="description">
-		   <?php esc_html_e('Valid options are: fedlab-sp or default-sp','wp-aaieduhr-auth'); ?>
+		   <?php
+           esc_html_e('Valid options are: ','wp-aaieduhr-auth');
+           echo esc_html(implode( ', ', WP_AAIEduHr_Options::VALID_SERVICE_TYPES) );
+           ?>
 		</p>
     <?php
 	}
@@ -289,19 +299,47 @@ class WP_AAIEduHr_Options {
 	 */
 	protected function validate()
 	{
+        if (! is_array($this->data)) {
+            WP_AAIEduHr_Helper::log(
+                sprintf(
+                    'Plugin settings have not been entered yet.',
+                ),
+            );
+            $this->are_valid = false;
+            return;
+        }
+
 		// simpleSAMLphp path should be valid, file should exist, and simpleSAMLphp class should be loaded.
 		if ( ! isset($this->data['simplesamlphp_path']) ||
 			 ! file_exists($this->data['simplesamlphp_path']) ||
 			 ! is_file($this->data['simplesamlphp_path']) ||
 			 ! $this->load_simpleSAMLphp( ) ) {
 			$this->validation_message .= __(' Can not load simpleSAMLphp.', 'wp-aaieduhr-auth');
+            WP_AAIEduHr_Helper::log(
+                sprintf(
+                    '%s SimpleSAMLphp path was: %s',
+                    $this->validation_message,
+                    $this->data['simplesamlphp_path'] ?? 'n/a',
+                ),
+                true,
+            );
 			$this->are_valid = false;
 		}
 
 		// Service type must be valid.
-		$valid_service_types = ['fedlab-sp', 'default-sp'];
-		if ( ! isset($this->data['service_type']) || ! in_array($this->data['service_type'], $valid_service_types)) {
+		if (
+                ! isset($this->data['service_type']) || !
+                in_array($this->data['service_type'], self::VALID_SERVICE_TYPES)
+        ) {
 			$this->validation_message .= __(' Service type is not valid.', 'wp-aaieduhr-auth');
+            WP_AAIEduHr_Helper::log(
+                sprintf(
+                    '%s Valid service types are: %s',
+                    $this->validation_message,
+                    implode(', ', self::VALID_SERVICE_TYPES),
+                ),
+                true,
+            );
 			$this->are_valid = false;
 		}
 
@@ -391,7 +429,7 @@ class WP_AAIEduHr_Options {
 	 */
 	private function load_simpleSAMLphp( ): bool
     {
-		require_once( $this->data['simplesamlphp_path'] );
+		require_once( $this->data['simplesamlphp_path'] ?? '' );
 		return class_exists( \SimpleSAML\Auth\Simple::class);
 	}
 }

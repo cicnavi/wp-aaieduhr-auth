@@ -37,11 +37,13 @@ Visit [official AAI@EduHr site](http://www.aaiedu.hr/za-davatelje-usluga/za-web-
 == Changelog ==
 = 0.2.0 =
 * Use style versioning when using wp_register_style for cache busting purposes.
-* Added sleep time when overriding AAI@EduHr authentication to make brute force attacks a bit harder.
-* Improve security by using esc_* family of functions when echoing data into HTML.
-* Improve security by using sanitize_* family of functions in actions related to processing data coming from users.
+* Add sleep time when overriding AAI@EduHr authentication to make brute force attacks a bit harder.
+* Use esc_* family of functions when echoing data into HTML.
+* Use sanitize_* family of functions in actions related to processing data coming from users.
 * Introduce nonce checks in some of the plugin actions.
 * Add type hinting throughout the codebase.
+* Add some log debug messages.
+* New service type options have been added with the final list being: default-sp, proxy-sp, mfa-sp, fedlab-sp
 
 = 0.1.0 =
 * Enable usage of newer versions of SimpleSAMLphp (v2.*)

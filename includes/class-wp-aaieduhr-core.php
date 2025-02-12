@@ -23,7 +23,8 @@ class WP_AAIEduHr_Core {
 					'wp-aaieduhr-auth'
 				) . $this->options->validation_message;
 
-			WP_AAIEduHr_Helper::display_notice($message, $class);
+            WP_AAIEduHr_Helper::log( $message, true );
+			WP_AAIEduHr_Helper::display_notice( $message, $class );
 		}
 		// Check if AAI@EduHr authentication is being bypassed in current request
 		elseif ( $this->is_aaieduhr_auth_being_bypassed() ) {
@@ -37,7 +38,8 @@ class WP_AAIEduHr_Core {
 			$class   = 'notice notice-warning';
 			$message = __( 'AAI@EduHr authentication has been bypassed for current user.', 'wp-aaieduhr-auth' );
 
-			WP_AAIEduHr_Helper::display_notice($message, $class);
+            WP_AAIEduHr_Helper::log( $message );
+			WP_AAIEduHr_Helper::display_notice( $message, $class );
 
 			// Add an action which will check if we need to clear cookies related to aabs.
 			add_action( 'init', array( static::class, 'clear_cookies_if_needed' ) );
@@ -110,6 +112,14 @@ class WP_AAIEduHr_Core {
 		// Person ID must be set in attributes.
 		if ( ! isset( $attributes['hrEduPersonUniqueID'] ) ) {
 			// Redirect to our custom page and show the error.
+            WP_AAIEduHr_Helper::log(
+                sprintf(
+                    '%s Received attributes: %s',
+                    WP_AAIEduHr_Helper::get_error_message( 'no_unique_id' ),
+                    var_export( $attributes, true ),
+                ),
+                true,
+            );
 			WP_AAIEduHr_Helper::show_message('error', 'no_unique_id');
 		}
 
@@ -128,6 +138,13 @@ class WP_AAIEduHr_Core {
 			// 'aaieduhr_account' meta which is set to true if the user was created using this plugin,
 			// or logged in at least once.
 			if ( ! WP_AAIEduHr_Helper::is_aaieduhr_account( $user->ID ) ) {
+                WP_AAIEduHr_Helper::log(
+                    sprintf(
+                        'Notice: User ID %s first time logged in using AAI@EduHr, applying metadata.',
+                        $user->ID,
+                    )
+                );
+
 				// We need to update user meta, so we ensure indication that this is AAI@EduHr account.
 				// Prepare user data. This will also prepare user meta.
 				$user_data = $this->prepare_user_data( $attributes );
@@ -147,6 +164,14 @@ class WP_AAIEduHr_Core {
 			// User does not exist.
 			// Check if we are allowed to create new users.
 			if ( ! $this->options->get()['should_create_new_users'] ) {
+                WP_AAIEduHr_Helper::log(
+                    sprintf(
+                        '%s',
+                        WP_AAIEduHr_Helper::get_error_message( 'user_creation_disabled' ),
+                    ),
+                    true,
+                );
+
 				// We are not allowed to create new users, so show the appropriate message and stop.
 				WP_AAIEduHr_Helper::show_message('error', 'user_creation_disabled');
 			}
@@ -164,8 +189,22 @@ class WP_AAIEduHr_Core {
 				// Parse errors into a string.
 				$errors       = join( ',', $user_id->get_error_codes() );
 				// Show the message and stop.
+                WP_AAIEduHr_Helper::log(
+                    sprintf(
+                        'Could not register new user. Errors: %s',
+                        $errors,
+                    ),
+                    true,
+                );
 				WP_AAIEduHr_Helper::show_message('error', $errors );
 			}
+
+            WP_AAIEduHr_Helper::log(
+                sprintf(
+                    'Successfully registered new user with ID %s.',
+                    $user_id,
+                ),
+            );
 
 			// Set user for current request, and also get the user instance.
 			$user = wp_set_current_user( $user_id );
@@ -177,6 +216,12 @@ class WP_AAIEduHr_Core {
 		wp_set_auth_cookie( $user->ID );
 		do_action( 'wp_login', $user->user_login, $user );
 
+        WP_AAIEduHr_Helper::log(
+            sprintf(
+                'User %s successfully logged in.',
+                $user->user_login,
+            ),
+        );
 
 		// Users are logged in, so we can redirect them to appropriate page.
 		$this->redirect_logged_in_user();
@@ -343,6 +388,16 @@ class WP_AAIEduHr_Core {
 		// If user realm is not in the allowed list, return and show appropriate message.
 		if ( ! in_array($user_realm, $this->options->get()['allowed_realms'] ) ) {
 
+            WP_AAIEduHr_Helper::log(
+                sprintf(
+                    '%s User realm was %s. Allowed realms are: %s',
+                    WP_AAIEduHr_Helper::get_error_message( 'realm_not_allowed' ),
+                    $user_realm,
+                    implode( ', ', $this->options->get()['allowed_realms'] )
+                ),
+                true,
+            );
+
 			WP_AAIEduHr_Helper::show_message('error', 'realm_not_allowed');
 
 		}
@@ -360,6 +415,8 @@ class WP_AAIEduHr_Core {
         ) {
             sleep(1); // Do some throttling, to tinker with brute force attacks.
 
+            WP_AAIEduHr_Helper::log('AAI@EduHr auth bypass initiated.');
+
             // If request parameter is present and not empty, and
             // if option is set and not empty, and
             // if they are equal
@@ -368,6 +425,7 @@ class WP_AAIEduHr_Core {
                 !empty($this->options->get()[WP_AAIEduHr_Options::KEY_AABS]) &&
                 $_GET[WP_AAIEduHr_Options::KEY_AABS] === $this->options->get()[WP_AAIEduHr_Options::KEY_AABS]
             ) {
+                WP_AAIEduHr_Helper::log('AAI@EduHr auth successfully bypassed.');
                 return true;
             }
         }
