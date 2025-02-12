@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 
 class WP_AAIEduHr_Helper {
 
@@ -27,12 +29,9 @@ class WP_AAIEduHr_Helper {
 
 	/**
 	 * Get the message for the given message code.
-	 *
-	 * @param $message_code
-	 *
-	 * @return string
 	 */
-	public static function get_message( $message_code ) {
+	public static function get_message( string $message_code ): string
+    {
 		switch ( $message_code ) {
 			case 'login':
 				return __( 'Login successful.', 'wp-aaieduhr-auth' );
@@ -42,7 +41,6 @@ class WP_AAIEduHr_Helper {
 				return __( 'Oops, there was an error:', 'wp-aaieduhr-auth' );
 			default:
 				return __( 'This message is not yet defined.', 'wp-aaieduhr-auth' );
-				break;
 		}
 	}
 
@@ -53,7 +51,8 @@ class WP_AAIEduHr_Helper {
 	 *
 	 * @return string               An error message.
 	 */
-	public static function get_error_message( $error_code ) {
+	public static function get_error_message( string $error_code ): string
+    {
 
 		switch ( $error_code ) {
 
@@ -103,7 +102,8 @@ class WP_AAIEduHr_Helper {
 	 *
 	 * @return string      CSS class.
 	 */
-	public static function get_code_css_class( $code ) {
+	public static function get_code_css_class( string $code ): string
+    {
 
 		switch ( $code ) {
 
@@ -140,7 +140,8 @@ class WP_AAIEduHr_Helper {
 	 *
 	 * @return string
 	 */
-	public static function get_site_url( $query_args = [] ) {
+	public static function get_site_url( array $query_args = [] ): string
+    {
 		return add_query_arg( $query_args, get_site_url() );
 	}
 
@@ -148,14 +149,15 @@ class WP_AAIEduHr_Helper {
 	 * Renders the contents of the given template to a string and returns it.
 	 *
 	 * @param string $template_name The name of the template to render (without .php)
-	 * @param array $attributes The PHP variables for the template
+	 * @param array|null $attributes The PHP variables for the template
 	 *
 	 * @return string               The contents of the template.
 	 */
-	public static function get_template_html( $template_name, $attributes = null ) {
+	public static function get_template_html( string $template_name, ?array $attributes = null ): string
+    {
 
-		// Path to the templates directory.
-		$templates_dir = dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR;
+		// Path to the templates' directory.
+		$templates_dir = dirname(__FILE__, 2) . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR;
 
 		if ( ! $attributes ) {
 			$attributes = array();
@@ -177,10 +179,9 @@ class WP_AAIEduHr_Helper {
 
 	/**
 	 * Build an array of error messages using error codes from query param.
-	 *
-	 * @return array
 	 */
-	public static function resolve_error_codes() {
+	public static function resolve_error_codes(): array
+    {
 
 		$error_codes = [];
 
@@ -197,10 +198,9 @@ class WP_AAIEduHr_Helper {
 
 	/**
 	 * Build an array of error messages using error codes from query param.
-	 *
-	 * @return array
 	 */
-	public static function resolve_error_messages() {
+	public static function resolve_error_messages(): array
+    {
 
 		$errors = [];
 		if ( isset( $_GET['errors'] ) ) {
@@ -216,10 +216,9 @@ class WP_AAIEduHr_Helper {
 
 	/**
 	 * Get a string representing the message code.
-	 *
-	 * @return string
 	 */
-	public static function resolve_auth_message_code() {
+	public static function resolve_auth_message_code(): string
+    {
 
 		$code = '';
 
@@ -232,10 +231,9 @@ class WP_AAIEduHr_Helper {
 
 	/**
 	 * Get a string related to authentication message.
-	 *
-	 * @return string|null
 	 */
-	public static function resolve_auth_message() {
+	public static function resolve_auth_message(): string
+    {
 
 		$auth_message = '';
 		$code = static::resolve_auth_message_code();
@@ -254,7 +252,7 @@ class WP_AAIEduHr_Helper {
 	 * @param string $errors Comma separated list of error codes. Default is empty string.
 	 * @param string $slug The slug of the page on which to show the error. Default is aaieduhr-auth.
 	 */
-	public static function show_message( $code, $errors = '', $slug = 'aaieduhr-auth' ) {
+	public static function show_message( string $code, string $errors = '', string $slug = 'aaieduhr-auth' ): void {
 
 		$query_args['code'] = $code;
 
@@ -275,13 +273,14 @@ class WP_AAIEduHr_Helper {
 	/**
 	 * Get permalink for page and add query params if needed.
 	 *
-	 * @param $slug Slug of the page.
+	 * @param string $slug Slug of the page.
 	 *
 	 * @param array $query_args Query arguments to add to the link.
 	 *
 	 * @return string Permalink
 	 */
-	public static function get_permalink_by_slug( $slug, $query_args = [] ) {
+	public static function get_permalink_by_slug( string $slug, array $query_args = [] ): string
+    {
 
 		$page = get_page_by_path( $slug );
 
@@ -297,7 +296,8 @@ class WP_AAIEduHr_Helper {
 	 *
 	 * @return bool True if user is created using AAI@EduHr, false otherwise.
 	 */
-	public static function is_aaieduhr_account ( $user_id ) {
+	public static function is_aaieduhr_account ( int $user_id ): bool
+    {
 		return (bool) get_user_meta( $user_id, 'aaieduhr_account', true );
 	}
 
@@ -307,7 +307,7 @@ class WP_AAIEduHr_Helper {
 	 * @param int $user_id ID of the user.
 	 * @param array $meta Key-value pairs to enter as user metadata.
 	 */
-	public static function do_update_user_meta( $user_id, $meta ) {
+	public static function do_update_user_meta( int $user_id, array $meta ) {
 
 		// Prefix to be used for our metadata.
 		$prefix = 'aaieduhr_';
@@ -325,7 +325,7 @@ class WP_AAIEduHr_Helper {
 	 * @param string $class
 	 *
 	 */
-	public static function display_notice( $message, $class ) {
+	public static function display_notice( string $message, string $class ): void {
 
 		// Add action to display the notice.
 		add_action( 'admin_notices', function () use ( $message, $class ) {
@@ -339,7 +339,7 @@ class WP_AAIEduHr_Helper {
 	 * @param string $message
 	 * @param string $class
 	 */
-	protected static function display_notice_action( $message, $class ) {
+	protected static function display_notice_action( string $message, string $class ) {
 
 		// Only show notice for users with administrative privileges.
 		if ( current_user_can( 'manage_options') ) {

@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 
 class WP_AAIEduHr_Shortcodes {
 
-	protected static $templates_dir = '';
+	protected static string $templates_dir = '';
 
 	protected function __construct() {
 
@@ -17,12 +19,13 @@ class WP_AAIEduHr_Shortcodes {
 	 * A shortcode for rendering simple messages to the user, using a shortcode on a dedicated page.
 	 * For example, if user logs in, the message 'Login successful' is shown to the user.
 	 *
-	 * @param  array $attributes Shortcode attributes.
-	 * @param  string $content The text content for shortcode. Not used.
+	 * @param array $attributes Shortcode attributes.
+	 * @param string|null $content The text content for shortcode. Not used.
 	 *
 	 * @return string  The shortcode output
 	 */
-	public static function render_auth_message( $attributes, $content = null ) {
+	public static function render_auth_message( array $attributes, string $content = null ): string
+    {
 
         if ( ! wp_verify_nonce( WP_AAIEduHr_Helper::get_nonce(), WP_AAIEduHr_Helper::NONCE_ACTION ) ) {
             wp_nonce_ays( WP_AAIEduHr_Helper::NONCE_ACTION );

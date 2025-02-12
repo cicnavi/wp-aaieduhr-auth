@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 
 /**
  * Class used to manage plugin options.
@@ -22,30 +24,25 @@ class WP_AAIEduHr_Options {
 
 	/**
 	 * Indication if entered options are actually valid.
-	 *
-	 * @var bool
 	 */
-	public $are_valid = true;
+	public bool $are_valid = true;
 
 	/**
 	 * Message about option validity.
-	 *
-	 * @var string
 	 */
-	public $validation_message = ' >>';
+	public string $validation_message = ' >>';
 
 	/**
 	 * The basename of the plugin.
-	 * @var
 	 */
-	protected $plugin_basename;
+	protected string $plugin_basename;
 
 	/**
 	 * WP_AAIEduHr_Options constructor.
 	 *
 	 * @param string $plugin_basename The basename of the plugin.
 	 */
-	public function __construct( $plugin_basename ) {
+	public function __construct( string $plugin_basename ) {
 
 		$this->plugin_basename = $plugin_basename;
 
@@ -129,12 +126,9 @@ class WP_AAIEduHr_Options {
 
 	/**
 	 * Sanitize input data for options.
-	 *
-	 * @param $input
-	 *
-	 * @return array
 	 */
-	public function sanitize_input( $input ) {
+	public function sanitize_input( array $input ): array
+    {
 		// Create our array for storing the sanitized options
 		$output = array();
 
@@ -142,9 +136,9 @@ class WP_AAIEduHr_Options {
 		foreach( $input as $key => $value ) {
 
 			// Check to see if the current option has a value. If so, process it.
-			if( isset( $input[$key] ) ) {
+			if( isset( $value ) ) {
 
-				$output[$key] = esc_attr( $input[ $key ] );
+				$output[$key] = esc_attr( $value );
 
 			}
 
@@ -160,7 +154,7 @@ class WP_AAIEduHr_Options {
     ?>
         <b><?php esc_html_e( 'Note', 'wp-aaieduhr-auth' ); ?>:</b>
         <?php esc_html_e( 'You should already have SimpleSAMLphp configured. Please visit ', 'wp-aaieduhr-auth' ); ?>
-        <a href="http://www.aaiedu.hr/za-davatelje-usluga/za-web-aplikacije/kako-implementirati-autentikaciju-putem-sustava-aaieduhr-u-php">
+        <a href="https://www.aaiedu.hr/za-davatelje-usluga/za-web-aplikacije/kako-implementirati-autentikaciju-putem-sustava-aaieduhr-u-php">
             <?php esc_html_e( 'official AAI@EduHr webpage for more information.', 'wp-aaieduhr-auth' ); ?>
         </a>
     <?php
@@ -350,8 +344,8 @@ class WP_AAIEduHr_Options {
 	 * @param string $file Current plugin basename
 	 * @return array Processed links
 	 */
-	public function modify_plugin_action_links( $links, $file )
-	{
+	public function modify_plugin_action_links( array $links, string $file ): array
+    {
 		// New links to merge into existing links
 		$new_links = array();
 
@@ -395,7 +389,8 @@ class WP_AAIEduHr_Options {
 	 *
 	 * @return bool True if successful, false otherwise.
 	 */
-	private function load_simpleSAMLphp( ) {
+	private function load_simpleSAMLphp( ): bool
+    {
 		require_once( $this->data['simplesamlphp_path'] );
 		return class_exists( \SimpleSAML\Auth\Simple::class);
 	}

@@ -17,6 +17,8 @@
  * Text Domain:       wp-aaieduhr-auth
  */
 
+declare(strict_types=1);
+
 // Ensure that the plugin is run under WordPress.
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 

@@ -1,17 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 
 class WP_AAIEduHr_Core {
 	const COOKIE_KEY_AABS = 'wp-aaieduhr-auth-aabs';
 
-	/**
-	 * Instance of plugin options.
-	 *
-	 * @var WP_AAIEduHr_Options
-	 */
-	protected $options;
-
-    protected string $nonceApply;
+	protected WP_AAIEduHr_Options $options;
 
 	public function __construct( WP_AAIEduHr_Options $options ) {
 
@@ -195,7 +190,7 @@ class WP_AAIEduHr_Core {
 	 *
 	 * @return int|WP_Error         The id of the user that was created, or error if failed.
 	 */
-	private function register_user( $user_data ) {
+	private function register_user( array $user_data ) {
 
 		$errors = new WP_Error();
 
@@ -260,9 +255,9 @@ class WP_AAIEduHr_Core {
 	 * Redirects the user to the correct page depending on whether he / she
 	 * is an admin or not, and also if MultiSite feature is used.
 	 *
-	 * @param string $redirect_to An optional redirect_to URL for admin users
+	 * @param string|null $redirect_to An optional redirect_to URL for admin users
 	 */
-	private function redirect_logged_in_user( $redirect_to = null ) {
+	private function redirect_logged_in_user( ?string $redirect_to = null ) {
 
 		$user = wp_get_current_user();
 
@@ -288,7 +283,8 @@ class WP_AAIEduHr_Core {
 	 *
 	 * @return array User data
 	 */
-	private function prepare_user_data( $attributes ) {
+	private function prepare_user_data( array $attributes ): array
+    {
 
 		$data = [];
 
@@ -355,9 +351,9 @@ class WP_AAIEduHr_Core {
 	/**
 	 * Check if AAI@EduHr Auth is being bypassed in current request. This can be done by using a previously configured
 	 * secret as a GET parameter in wp-login.php route, (/wp-login.php?aabs=some-secret)
-	 * @return bool
 	 */
-	protected function is_aaieduhr_auth_being_bypassed() {
+	protected function is_aaieduhr_auth_being_bypassed(): bool
+    {
 		if (
             isset($_GET[WP_AAIEduHr_Options::KEY_AABS]) &&
             !empty($_GET[WP_AAIEduHr_Options::KEY_AABS])
@@ -379,10 +375,8 @@ class WP_AAIEduHr_Core {
 		return false;
 	}
 
-	/**
-	 * @return bool
-	 */
-	protected function has_aaieduhr_auth_been_bypassed_for_current_session() {
+	protected function has_aaieduhr_auth_been_bypassed_for_current_session(): bool
+    {
 		return isset($_COOKIE[self::COOKIE_KEY_AABS]);
 	}
 

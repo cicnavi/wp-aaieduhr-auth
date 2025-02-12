@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 
 class WP_AAIEduHr_Bootstrap {
 
@@ -7,13 +9,13 @@ class WP_AAIEduHr_Bootstrap {
 	 * Path to directory where all the files to include reside.
 	 * @var string
 	 */
-	protected static $includes_dir = __DIR__ . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR;
+	protected static string $includes_dir = __DIR__ . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR;
 
 	/**
 	 * Files to include. Order is important.
 	 * @var array
 	 */
-	protected static $files_to_include = [
+	protected static array $files_to_include = [
 		'class-wp-aaieduhr-helper.php',
 		'class-wp-aaieduhr-shortcodes.php',
 		'class-wp-aaieduhr-options.php',
@@ -24,13 +26,13 @@ class WP_AAIEduHr_Bootstrap {
 	 * Holds array of page definitions.
 	 * @var array
 	 */
-	protected  static $page_definitions;
+	protected static array $page_definitions;
 
 	/**
 	 * Plugin basename, used to define Settings link for plugin options.
 	 * @var string
 	 */
-	protected static $plugin_basename;
+	protected static string $plugin_basename;
 
 	// Don't allow instantiation from outside.
 	protected function __construct() {
@@ -40,9 +42,9 @@ class WP_AAIEduHr_Bootstrap {
 	/**
 	 * Initialize the plugin.
 	 *
-	 * @param string The basename of the plugin, used for Settings link for plugin options.
+	 * @param string $plugin_basename The basename of the plugin, used for Settings link for plugin options.
 	 */
-	public static function init( $plugin_basename ) {
+	public static function init( string $plugin_basename ) {
 
 		static::$plugin_basename = $plugin_basename;
 
@@ -117,7 +119,7 @@ class WP_AAIEduHr_Bootstrap {
 	 * Remove some input in 'Add New User' form.
 	 * @param string $form_version
 	 */
-	public static function remove_unnecessary_input_when_creating_users ( $form_version = '' ) {
+	public static function remove_unnecessary_input_when_creating_users ( string $form_version = '' ) {
 		if ( 'add-new-user' == $form_version ):
 			// Remove 'Send notification' option and Password fields, using jQuery.
 			// Dirty, but the original form is hardcoded :/.
@@ -134,9 +136,8 @@ class WP_AAIEduHr_Bootstrap {
 
 	/**
 	 * Remove some input in 'Add New User' form.
-	 * @param string $form_version
 	 */
-	public static function remove_unnecessary_input_when_editing_users ( $profileuser ) {
+	public static function remove_unnecessary_input_when_editing_users ( ) {
         // Remove 'Password Reset' option using jQuery.
         // Dirty, but the original form is hardcoded :/.
         ?>
@@ -150,12 +151,8 @@ class WP_AAIEduHr_Bootstrap {
 
 	/**
      * Disable password resetting bulk action.
-     *
-	 * @param $actions
-	 *
-	 * @return mixed
 	 */
-	public static function remove_unnecessary_bulk_actions_when_listing_users( $actions ) {
+	public static function remove_unnecessary_bulk_actions_when_listing_users( array $actions ): array {
 	    // Disable bulk action for resetting password.
 	    unset($actions['resetpassword']);
 	    return $actions;
@@ -164,12 +161,9 @@ class WP_AAIEduHr_Bootstrap {
 
 	/**
 	 * Disable password resetting for single user (on a single row).
-	 *
-	 * @param $actions
-	 *
-	 * @return mixed
 	 */
-	public static function remove_unnecessary_actions_when_listing_users( $actions, $user_object ) {
+	public static function remove_unnecessary_actions_when_listing_users( array $actions, WP_User $user_object ): array
+    {
 		// Disable action for resetting password.
 		unset($actions['resetpassword']);
 		return $actions;
@@ -177,9 +171,9 @@ class WP_AAIEduHr_Bootstrap {
 
 	/**
 	 * Disable password reset feature for accounts created using AAI@EduHr.
-	 *
 	 */
-	public static function disable_password_reset( $allow, $user_id ) {
+	public static function disable_password_reset( bool $allow, int $user_id ): bool
+    {
 		// Disable password resets for all users.
 		return false;
 		// TODO mivanci Consider: Disable password reset if account is created using AAI@EduHr
@@ -189,13 +183,8 @@ class WP_AAIEduHr_Bootstrap {
 
 	/**
 	 * Remove password reset fields on user edit page for accounts created using AAI@EduHr.
-	 *
-	 * @param boolean $show
-	 * @param WP_User $user
-	 *
-	 * @return bool True or false.
 	 */
-	public static function disable_password_fields( $show, $user ) {
+	public static function disable_password_fields( bool $show, WP_User $user ): bool {
 		// Disable password fields for all users.
 		return false;
 		// TODO mivanci Consider: Remove password reset fields for accounts created using AAI@EduHr.
@@ -206,7 +195,7 @@ class WP_AAIEduHr_Bootstrap {
 	/**
 	 * Prepare plugin page definitions.
 	 */
-	protected static function prepare_plugin_page_definitions( ) {
+	protected static function prepare_plugin_page_definitions( ): void {
 		// Information needed for creating the plugin's pages
 		static::$page_definitions = [
 			'aaieduhr-auth' => [
@@ -245,10 +234,8 @@ class WP_AAIEduHr_Bootstrap {
 
 	/**
 	 * In MultiSite environment, ensure 'Email' label when adding existing users to site.
-	 *
-	 * @param string $form_version
 	 */
-	public static function rename_label_to_email( $form_version = '' )
+	public static function rename_label_to_email( string $form_version = '' ): void
 	{
 		// Only apply when adding existing users.
 		if ( 'add-existing-user' == $form_version ):
@@ -395,13 +382,13 @@ class WP_AAIEduHr_Bootstrap {
 		 * @since MU (3.0.0)
 		 *
 		 * @param array $result {
-		 *     The array of user name, email and the error messages.
+		 *     The array of username, email and the error messages.
 		 *
 		 *     @type string   $user_name     Sanitized and unique username.
 		 *     @type string   $orig_username Original username.
 		 *     @type string   $user_email    User email address.
 		 *     @type WP_Error $errors        WP_Error object containing any errors found.
-		 * }
+		 *}
 		 */
 		return apply_filters( 'aaieduhr_wpmu_validate_user_signup', $result );
 	}

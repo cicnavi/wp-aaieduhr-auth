@@ -40,7 +40,8 @@ Visit [official AAI@EduHr site](http://www.aaiedu.hr/za-davatelje-usluga/za-web-
 * Added sleep time when overriding AAI@EduHr authentication to make brute force attacks a bit harder.
 * Improve security by using esc_* family of functions when echoing data into HTML.
 * Improve security by using sanitize_* family of functions in actions related to processing data coming from users.
-* Introduce nonce checks in actions related to processing data coming from users.
+* Introduce nonce checks in some of the plugin actions.
+* Add type hinting throughout the codebase.
 
 = 0.1.0 =
 * Enable usage of newer versions of SimpleSAMLphp (v2.*)

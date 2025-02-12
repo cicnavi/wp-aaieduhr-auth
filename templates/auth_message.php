@@ -1,5 +1,5 @@
 <div class="login-message-container">
-	<?php if ( $attributes['show_title'] ) : ?>
+	<?php if ( isset($attributes['show_title']) ) : ?>
 		<h2><?php esc_html_e( 'AAI@EduHr Message', 'wp-aaieduhr-auth' ); ?></h2>
 	<?php endif; ?>
 
