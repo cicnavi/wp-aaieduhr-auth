@@ -2,9 +2,9 @@
 Contributors: cicnavi
 Tags: authentication, AAI@EduHr, Srce
 Requires at least: 4.8.2
-Tested up to: 6.6.0
+Tested up to: 6.7.2
 Stable tag: 0.2.0
-Requires PHP: 7.4.* or later
+Requires PHP: 7.4
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -37,7 +37,10 @@ Visit [official AAI@EduHr site](http://www.aaiedu.hr/za-davatelje-usluga/za-web-
 == Changelog ==
 = 0.2.0 =
 * Use style versioning when using wp_register_style for cache busting purposes.
-*
+* Added sleep time when overriding AAI@EduHr authentication to make brute force attacks a bit harder.
+* Improve security by using esc_* family of functions when echoing data into HTML.
+* Improve security by using sanitize_* family of functions in actions related to processing data coming from users.
+* Introduce nonce checks in actions related to processing data coming from users.
 
 = 0.1.0 =
 * Enable usage of newer versions of SimpleSAMLphp (v2.*)

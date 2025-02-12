@@ -62,6 +62,9 @@ class WP_AAIEduHr_Bootstrap {
 		// Create plugin instance using available options.
 		$core = new WP_AAIEduHr_Core( $options );
 
+        // Initialize plugin related nonce.
+        add_action('init', array( WP_AAIEduHr_Helper::class, 'init_nonce' ) );
+
 		// Disable password resetting features.
 		add_filter( 'allow_password_reset', array( static::class, 'disable_password_reset'), 10, 2 );
 		add_filter( 'show_password_fields', array( static::class, 'disable_password_fields'), 10, 2 );
@@ -300,14 +303,14 @@ class WP_AAIEduHr_Bootstrap {
 
 // Code that disabled emails to be used as usernames
 //	if ( $user_name != $orig_username || preg_match( '/[^a-z0-9]/', $user_name ) ) {
-//		$errors->add( 'user_name', __( 'Usernames can only contain lowercase letters (a-z) and numbers.' ) );
+//		$errors->add( 'user_name', __( 'Usernames can only contain lowercase letters (a-z) and numbers.', 'wp-aaieduhr-auth' ) );
 //		$user_name = $orig_username;
 //	}
 
 		$user_email = sanitize_email( $user_email );
 
 		if ( empty( $user_name ) )
-			$errors->add('user_name', __( 'Please enter a username.' ) );
+			$errors->add('user_name', __( 'Please enter a username.', 'wp-aaieduhr-auth' ) );
 
 		$illegal_names = get_site_option( 'illegal_names' );
 		if ( ! is_array( $illegal_names ) ) {
@@ -315,48 +318,48 @@ class WP_AAIEduHr_Bootstrap {
 			add_site_option( 'illegal_names', $illegal_names );
 		}
 		if ( in_array( $user_name, $illegal_names ) ) {
-			$errors->add( 'user_name',  __( 'Sorry, that username is not allowed.' ) );
+			$errors->add( 'user_name',  __( 'Sorry, that username is not allowed.', 'wp-aaieduhr-auth' ) );
 		}
 
 		/** This filter is documented in wp-includes/user.php */
 		$illegal_logins = (array) apply_filters( 'illegal_user_logins', array() );
 
 		if ( in_array( strtolower( $user_name ), array_map( 'strtolower', $illegal_logins ) ) ) {
-			$errors->add( 'user_name',  __( 'Sorry, that username is not allowed.' ) );
+			$errors->add( 'user_name',  __( 'Sorry, that username is not allowed.', 'wp-aaieduhr-auth' ) );
 		}
 
 		if ( ! is_email( $user_email ) ) {
-			$errors->add( 'user_email', __( 'Please enter a valid email address.' ) );
+			$errors->add( 'user_email', __( 'Please enter a valid email address.', 'wp-aaieduhr-auth' ) );
 		} elseif ( is_email_address_unsafe( $user_email ) ) {
-			$errors->add( 'user_email', __( 'You cannot use that email address to signup. We are having problems with them blocking some of our email. Please use another email provider.' ) );
+			$errors->add( 'user_email', __( 'You cannot use that email address to signup. We are having problems with them blocking some of our email. Please use another email provider.', 'wp-aaieduhr-auth' ) );
 		}
 
 		if ( strlen( $user_name ) < 4 )
-			$errors->add('user_name',  __( 'Username must be at least 4 characters.' ) );
+			$errors->add('user_name',  __( 'Username must be at least 4 characters.', 'wp-aaieduhr-auth' ) );
 
 		if ( strlen( $user_name ) > 60 ) {
-			$errors->add( 'user_name', __( 'Username may not be longer than 60 characters.' ) );
+			$errors->add( 'user_name', __( 'Username may not be longer than 60 characters.', 'wp-aaieduhr-auth' ) );
 		}
 
 		// all numeric?
 		if ( preg_match( '/^[0-9]*$/', $user_name ) )
-			$errors->add('user_name', __('Sorry, usernames must have letters too!'));
+			$errors->add('user_name', __('Sorry, usernames must have letters too!', 'wp-aaieduhr-auth'));
 
 		$limited_email_domains = get_site_option( 'limited_email_domains' );
 		if ( is_array( $limited_email_domains ) && ! empty( $limited_email_domains ) ) {
 			$emaildomain = substr( $user_email, 1 + strpos( $user_email, '@' ) );
 			if ( ! in_array( $emaildomain, $limited_email_domains ) ) {
-				$errors->add('user_email', __('Sorry, that email address is not allowed!'));
+				$errors->add('user_email', __('Sorry, that email address is not allowed!', 'wp-aaieduhr-auth'));
 			}
 		}
 
 		// Check if the username has been used already.
 		if ( username_exists($user_name) )
-			$errors->add( 'user_name', __( 'Sorry, that username already exists!' ) );
+			$errors->add( 'user_name', __( 'Sorry, that username already exists!', 'wp-aaieduhr-auth' ) );
 
 		// Check if the email address has been used already.
 		if ( email_exists($user_email) )
-			$errors->add( 'user_email', __( 'Sorry, that email address is already used!' ) );
+			$errors->add( 'user_email', __( 'Sorry, that email address is already used!', 'wp-aaieduhr-auth' ) );
 
 		// Has someone already signed up for this username?
 		$signup = $wpdb->get_row( $wpdb->prepare("SELECT * FROM $wpdb->signups WHERE user_login = %s", $user_name) );
@@ -368,7 +371,7 @@ class WP_AAIEduHr_Bootstrap {
 			if ( $diff > 2 * DAY_IN_SECONDS )
 				$wpdb->delete( $wpdb->signups, array( 'user_login' => $user_name ) );
 			else
-				$errors->add('user_name', __('That username is currently reserved but may be available in a couple of days.'));
+				$errors->add('user_name', __('That username is currently reserved but may be available in a couple of days.', 'wp-aaieduhr-auth'));
 		}
 
 		$signup = $wpdb->get_row( $wpdb->prepare("SELECT * FROM $wpdb->signups WHERE user_email = %s", $user_email) );
@@ -378,7 +381,7 @@ class WP_AAIEduHr_Bootstrap {
 			if ( $diff > 2 * DAY_IN_SECONDS )
 				$wpdb->delete( $wpdb->signups, array( 'user_email' => $user_email ) );
 			else
-				$errors->add('user_email', __('That email address has already been used. Please check your inbox for an activation email. It will become available in a couple of days if you do nothing.'));
+				$errors->add('user_email', __('That email address has already been used. Please check your inbox for an activation email. It will become available in a couple of days if you do nothing.', 'wp-aaieduhr-auth' ) );
 		}
 
 		$result = array('user_name' => $user_name, 'orig_username' => $orig_username, 'user_email' => $user_email, 'errors' => $errors);
@@ -405,7 +408,7 @@ class WP_AAIEduHr_Bootstrap {
 
 	public static function add_footer_content()
 	{
-		// Resolve error messages
+		// Resolve error codes
 		$error_codes = WP_AAIEduHr_Helper::resolve_error_codes();
 
 		// Resolve auth messages
@@ -413,24 +416,32 @@ class WP_AAIEduHr_Bootstrap {
 
 		// Show appropriate alert with resolved messages.
 		if ( ! empty( $error_codes ) || $auth_message_code != '' ) {
-			echo '<div class="aaieduhr-alert">';
-			echo '<span class="closebtn" onclick="this.parentElement.style.display=\'none\';">&times;</span>';
-			echo '<p><strong>AAI@EduHr</strong></p>';
+        ?>
+			<div class="aaieduhr-alert">
+			    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+			    <p><strong>AAI@EduHr</strong></p>
+            <?php
+                if ($auth_message_code) {
+                ?>
+                    <div class="<?php echo esc_attr( WP_AAIEduHr_Helper::get_code_css_class( $auth_message_code ) ); ?>">
+                        <?php echo esc_html( WP_AAIEduHr_Helper::get_message( $auth_message_code ) ); ?>
+                        <br>
+                    </div>
+                <?php
+                }
 
-			if ($auth_message_code) {
-				echo '<div class="' . WP_AAIEduHr_Helper::get_code_css_class( $auth_message_code ) . '">';
-				echo WP_AAIEduHr_Helper::get_message( $auth_message_code ) . '<br>';
-				echo '</div>';
-			}
-
-			if ( ! empty( $error_codes ) ) {
-				foreach ( $error_codes as $error_code ) {
-					echo '<div class="' . WP_AAIEduHr_Helper::get_code_css_class( $error_code ) . '">';
-					echo WP_AAIEduHr_Helper::get_error_message( $error_code ) . '<br>';
-					echo '</div>';
-				}
-			}
-			echo '</div>';
+                if ( ! empty( $error_codes ) ) {
+                    foreach ( $error_codes as $error_code ) {
+                    ?>
+                        <div class="<?php echo esc_attr(WP_AAIEduHr_Helper::get_code_css_class( $error_code ) ); ?>">
+                            <?php echo esc_html( WP_AAIEduHr_Helper::get_error_message( $error_code ) ); ?>
+                        </div>
+                    <?php
+                    }
+                }
+            ?>
+			</div>
+            <?php
 		}
 
 	}

@@ -157,72 +157,69 @@ class WP_AAIEduHr_Options {
 	 * Callback used to generate HTML for main configuration settings section.
 	 */
 	public function generate_settings_section_main_configuration(  ) {
-
-		$text = '<b>Note:</b> You should already have simpleSAMLphp configured. Please visit 
-					<a href="http://www.aaiedu.hr/za-davatelje-usluga/za-web-aplikacije/kako-implementirati-autentikaciju-putem-sustava-aaieduhr-u-php">
-					official AAI@EduHr webpage</a>
-					for more information.';
-
-		_e( $text, 'wp-aaieduhr-auth' );
-
+    ?>
+        <b><?php esc_html_e( 'Note', 'wp-aaieduhr-auth' ); ?>:</b>
+        <?php esc_html_e( 'You should already have SimpleSAMLphp configured. Please visit ', 'wp-aaieduhr-auth' ); ?>
+        <a href="http://www.aaiedu.hr/za-davatelje-usluga/za-web-aplikacije/kako-implementirati-autentikaciju-putem-sustava-aaieduhr-u-php">
+            <?php esc_html_e( 'official AAI@EduHr webpage for more information.', 'wp-aaieduhr-auth' ); ?>
+        </a>
+    <?php
 	}
 
 	public function render_input_for_simplesamlphp_path(  ) {
-		?>
-		<input type='text'
+    ?>
+		<input type="text"
 			   class="regular-text"
-			   name='wp_aaieduhr_auth_settings[simplesamlphp_path]'
-			   value='<?php echo isset($this->data['simplesamlphp_path']) ? $this->data['simplesamlphp_path'] : ''; ?>'>
+			   name="wp_aaieduhr_auth_settings[simplesamlphp_path]"
+			   value="<?php echo isset($this->data['simplesamlphp_path']) ? esc_attr($this->data['simplesamlphp_path']) : ''; ?>">
 
 		<p class="description">
-			<?php _e('For example: /var/www/simplesamlphp/src/_autoload.php','wp-aaieduhr-auth'); ?>
+			<?php esc_html_e('For example: /var/www/simplesamlphp/src/_autoload.php','wp-aaieduhr-auth'); ?>
 		</p>
-		<?php
-
+    <?php
 	}
 
 	public function render_input_for_service_type(  ) {
-		?>
-		<input type='text'
-			   name='wp_aaieduhr_auth_settings[service_type]'
-			   value='<?php echo isset($this->data['service_type']) ? $this->data['service_type'] : ''; ?>'>
+    ?>
+		<input type="text"
+			   name="wp_aaieduhr_auth_settings[service_type]"
+			   value="<?php echo isset($this->data['service_type']) ? esc_attr($this->data['service_type']) : ''; ?>">
 		<p class="description">
-		   <?php _e('Valid options are: fedlab-sp or default-sp','wp-aaieduhr-auth'); ?>
+		   <?php esc_html_e('Valid options are: fedlab-sp or default-sp','wp-aaieduhr-auth'); ?>
 		</p>
-		<?php
+    <?php
 	}
 
 
 	public function render_input_for_should_create_new_users(  ) {
-		?>
-		<input type='checkbox' name='wp_aaieduhr_auth_settings[should_create_new_users]'
+    ?>
+		<input type="checkbox"
+               name="wp_aaieduhr_auth_settings[should_create_new_users]"
 				<?php
 				checked( isset($this->data['should_create_new_users']) && $this->data['should_create_new_users'] == '1');
 				?>
-			   value='1'>
+			   value="1">
 		<p class="description">
 			<?php
-				_e('Check this option if you want to automatically create local users which are successfully authenticated trough AAI@EduHr. <br>
-				Uncheck it if you want to manually create local users which are then allowed to authenticate trough AAI@EduHr
-				(if you want to use standard WordPress user administration to allow only specific users). <br>', 'wp-aaieduhr-auth');
+                esc_html_e('Check this option if you want to automatically create local users which are successfully authenticated through AAI@EduHr.
+				Uncheck it if you want to manually create local users which are then allowed to authenticate through AAI@EduHr
+				(if you want to use standard WordPress user administration to allow only specific users).', 'wp-aaieduhr-auth');
 			?>
 
 		</p>
-		<?php
-
+    <?php
 	}
 
 	public function render_input_for_allowed_realms(  ) {
 		?>
-		<input type='text'
+		<input type="text"
 			   class="regular-text"
-			   name='wp_aaieduhr_auth_settings[allowed_realms]'
-			   value='<?php echo isset($this->data['allowed_realms']) ? implode(', ', $this->data['allowed_realms']) : ''; ?>'>
+			   name="wp_aaieduhr_auth_settings[allowed_realms]"
+			   value="<?php echo isset($this->data['allowed_realms']) ? esc_attr(implode(', ', $this->data['allowed_realms'])) : ''; ?>">
 		<p class="description">
 			<?php
-
-				_e('Leave empty if users from any realm are allowed to authenticate trough AAI@EduHr.<br>
-					If you want to limit authentication to specific realms, enter comma separated list of realms. <br>
+                esc_html_e('Leave empty if users from any realm are allowed to authenticate through AAI@EduHr.
+					If you want to limit authentication to specific realms, enter comma separated list of realms.
 					For example, to limit authentication only to srce.hr and sfzg.hr realms, enter: srce.hr, sfzg.hr', 'wp-aaieduhr-auth');
 			?>
 		</p>
@@ -236,29 +233,35 @@ class WP_AAIEduHr_Options {
 	 */
 	public function render_input_for_aabs(  ) {
 		?>
-        <input type='text'
+        <input type="text"
                class="regular-text"
-               name='wp_aaieduhr_auth_settings[aabs]'
-               value='<?php echo isset($this->data[self::KEY_AABS]) ? $this->data[self::KEY_AABS] : ''; ?>'>
+               name="wp_aaieduhr_auth_settings[aabs]"
+               value="<?php echo isset($this->data[self::KEY_AABS]) ? esc_attr($this->data[self::KEY_AABS]) : ''; ?>">
         <p class="description">
 			<?php
-
-			_e('Secret which can be used to bypass AAI@EduHr authentication, so that a user can authenticate using
-                    regular WordPress user / login form. <br>
+                esc_html_e('Secret which can be used to bypass AAI@EduHr authentication, so that a user can authenticate using
+                    regular WordPress user / login form.
                     This can be used in scenarios when a site maintainer does not have AAI@EduHr identity, but has to 
-                    be able to, for example, get to the site admin dashboard.  <br>
+                    be able to, for example, get to the site admin dashboard.
                     To show WordPress login form, set \'aabs\' query parameter in wp-login route, like:
-                    /wp-login.php?aabs=some-secret<br>
+                    /wp-login.php?aabs=some-secret.
                     Make sure that the secret is long-enough, hard-to-guess and with no chars which have special meaning in URLs. 
                     ', 'wp-aaieduhr-auth');
 
 			if (!isset($this->data[self::KEY_AABS]) || empty($this->data[self::KEY_AABS])) {
-				_e('<br>Example secret to use: ' . wp_generate_password(32, false), 'wp-aaieduhr-auth');
-			}
-			?>
+            ?>
+                <br>
+                <strong>
+                <?php
+                    esc_html_e('Example secret to use: ', 'wp-aaieduhr-auth');
+                ?>
+                </strong>
+                <?php
+                    echo esc_html(wp_generate_password(32, false));
+                }
+                ?>
         </p>
 		<?php
-
 	}
 
 	/**
@@ -371,7 +374,7 @@ class WP_AAIEduHr_Options {
 
 		?>
 		<div class="wrap">
-			<form action='options.php' method='post'>
+			<form action="options.php" method="post">
 
 				<h1>WP AAI@EduHr Auth</h1>
 

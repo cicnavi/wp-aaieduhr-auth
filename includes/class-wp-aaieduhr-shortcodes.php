@@ -24,6 +24,10 @@ class WP_AAIEduHr_Shortcodes {
 	 */
 	public static function render_auth_message( $attributes, $content = null ) {
 
+        if ( ! wp_verify_nonce( WP_AAIEduHr_Helper::get_nonce(), WP_AAIEduHr_Helper::NONCE_ACTION ) ) {
+            wp_nonce_ays( WP_AAIEduHr_Helper::NONCE_ACTION );
+        }
+
 		// Some default attributes, to get us started.
 		$default_attributes = array(
 			'show_title'   => true,
@@ -34,14 +38,16 @@ class WP_AAIEduHr_Shortcodes {
 
 		// Resolve actual, main message (status of authentication).
 		if ( isset( $_GET['code'] ) ) {
-			$attributes['auth_message'] = WP_AAIEduHr_Helper::get_message( $_GET['code'] );
+			$attributes['auth_message'] = WP_AAIEduHr_Helper::get_message(
+                sanitize_text_field( wp_unslash( $_GET['code'] ) ),
+            );
 		}
 
 		// Resolve error messages
 		$errors = [];
 		if ( isset( $_GET['errors'] ) ) {
 			// Error message codes will be given as GET parameter, as a comma separated list.
-			$error_codes = explode( ',', $_GET['errors'] );
+			$error_codes = explode( ',', sanitize_text_field( wp_unslash( $_GET['errors'] ) ) );
 
 			// For each error code get the actual error message.
 			foreach ( $error_codes as $code ) {
@@ -56,7 +62,10 @@ class WP_AAIEduHr_Shortcodes {
 		// request parameter, use it.
 		$attributes['redirect'] = '';
 		if ( isset( $_REQUEST['redirect_to'] ) ) {
-			$attributes['redirect'] = wp_validate_redirect( $_REQUEST['redirect_to'], $attributes['redirect'] );
+			$attributes['redirect'] = wp_validate_redirect(
+                sanitize_url( wp_unslash( $_REQUEST['redirect_to'] ) ),
+                $attributes['redirect']
+            );
 		}
 
 		// Render the actual template

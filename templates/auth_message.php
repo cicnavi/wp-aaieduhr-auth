@@ -1,10 +1,10 @@
 <div class="login-message-container">
 	<?php if ( $attributes['show_title'] ) : ?>
-		<h2><?php _e( 'AAI@EduHr Message', 'wp-aaieduhr-auth' ); ?></h2>
+		<h2><?php esc_html_e( 'AAI@EduHr Message', 'wp-aaieduhr-auth' ); ?></h2>
 	<?php endif; ?>
 
 	<p class="">
-		<?php echo $attributes['auth_message']; ?>
+		<?php esc_html($attributes['auth_message']); ?>
 	</p>
 
 	<!-- Show errors if there are any -->
@@ -13,7 +13,7 @@
 			<ul>
 			<?php foreach ( $attributes['errors'] as $error ) : ?>
 				<li class="login-error">
-					<?php echo $error; ?>
+					<?php esc_html($error); ?>
 				</li>
 			<?php endforeach; ?>
 			</ul>
@@ -21,6 +21,8 @@
 	<?php endif; ?>
 
 	<p>
-		<a href="<?php echo home_url() ?>"><?php _e('Go to homepage', 'wp-aaieduhr-auth');?></a>
+		<a href="<?php esc_url(home_url()) ?>">
+            <?php esc_html_e('Go to homepage', 'wp-aaieduhr-auth');?>
+        </a>
 	</p>
 </div>

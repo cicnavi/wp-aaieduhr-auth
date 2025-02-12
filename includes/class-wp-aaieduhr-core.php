@@ -11,6 +11,8 @@ class WP_AAIEduHr_Core {
 	 */
 	protected $options;
 
+    protected string $nonceApply;
+
 	public function __construct( WP_AAIEduHr_Options $options ) {
 
 		// Save plugin options so we can use them.
@@ -67,7 +69,7 @@ class WP_AAIEduHr_Core {
 		// Add custom login execution.
 		add_action( 'login_form_login', array( $this, 'redirect_to_aaieduhr_login' ) );
 
-		// Hook to logout
+		// Hook to log out
 		add_action( 'wp_logout', array( $this, 'redirect_after_logout' ) );
 
 		// Remove default authentication filters, they are not needed now.
@@ -85,8 +87,12 @@ class WP_AAIEduHr_Core {
 	 */
 	public function redirect_to_aaieduhr_login( ) {
 
+        $nonce = wp_create_nonce('aaieduhr_apply');
+
 		// If there is redirect parameter, save it.
-		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : null;
+		$redirect_to = isset( $_REQUEST['redirect_to'] ) ?
+            wp_sanitize_redirect(wp_unslash($_REQUEST['redirect_to'])) :
+            null;
 
 		// If user is already logged in, simply redirect him and stop.
 		if ( is_user_logged_in() ) {
@@ -98,6 +104,10 @@ class WP_AAIEduHr_Core {
 
 		// User must be authenticated using AAI@EduHr
 		$ssp->requireAuth(['ReturnTo' => wp_login_url()]);
+
+        if ( ! wp_verify_nonce($nonce, 'aaieduhr_apply' ) ) {
+            wp_nonce_ays( 'aaieduhr_apply' );
+        }
 
 		// Get the user attributes from AAI@EduHr
 		$attributes = $ssp->getAttributes();
@@ -348,16 +358,23 @@ class WP_AAIEduHr_Core {
 	 * @return bool
 	 */
 	protected function is_aaieduhr_auth_being_bypassed() {
-		// If request parameter is present and not empty, and
-		// if option is set and not empty, and
-		// if they are equal
 		if (
-			isset($_GET[WP_AAIEduHr_Options::KEY_AABS]) && !empty($_GET[WP_AAIEduHr_Options::KEY_AABS]) &&
-			isset($this->options->get()[WP_AAIEduHr_Options::KEY_AABS]) && !empty($this->options->get()[WP_AAIEduHr_Options::KEY_AABS]) &&
-			$_GET[WP_AAIEduHr_Options::KEY_AABS] === $this->options->get()[WP_AAIEduHr_Options::KEY_AABS]
-		) {
-			return true;
-		}
+            isset($_GET[WP_AAIEduHr_Options::KEY_AABS]) &&
+            !empty($_GET[WP_AAIEduHr_Options::KEY_AABS])
+        ) {
+            sleep(1); // Do some throttling, to tinker with brute force attacks.
+
+            // If request parameter is present and not empty, and
+            // if option is set and not empty, and
+            // if they are equal
+            if (
+                isset($this->options->get()[WP_AAIEduHr_Options::KEY_AABS]) &&
+                !empty($this->options->get()[WP_AAIEduHr_Options::KEY_AABS]) &&
+                $_GET[WP_AAIEduHr_Options::KEY_AABS] === $this->options->get()[WP_AAIEduHr_Options::KEY_AABS]
+            ) {
+                return true;
+            }
+        }
 
 		return false;
 	}
@@ -376,7 +393,7 @@ class WP_AAIEduHr_Core {
 		// If the user is logged in, we can clear the aabs cookie.
 
 		if (is_user_logged_in()) {
-			setcookie(self::COOKIE_KEY_AABS, null, strtotime('-1 day'), SITECOOKIEPATH);
+			setcookie(self::COOKIE_KEY_AABS, '', strtotime('-1 day'), SITECOOKIEPATH);
 		}
 	}
 }

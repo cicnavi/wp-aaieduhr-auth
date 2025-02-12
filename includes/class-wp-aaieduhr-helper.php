@@ -3,6 +3,28 @@
 
 class WP_AAIEduHr_Helper {
 
+    /**
+     * @var string|null Plugin related nonce.
+     */
+    protected static ?string $nonce = null;
+
+    public const NONCE_ACTION = 'wp-aaieduhr-auth-nonce';
+
+    /**
+     * Initialize nonce (if not already initialized) and get its value.
+     *
+     * @return string
+     */
+    public static function init_nonce(): string
+    {
+        return self::$nonce ?? wp_create_nonce(self::NONCE_ACTION);
+    }
+
+    public static function get_nonce(): ?string
+    {
+        return self::$nonce;
+    }
+
 	/**
 	 * Get the message for the given message code.
 	 *
@@ -64,6 +86,9 @@ class WP_AAIEduHr_Helper {
 			case 'registration_disabled':
 				return __( 'User registration is disabled since AAI@EduHr system is being used.', 'wp-aaieduhr-auth' );
 
+            case 'nonce_failed':
+                return __( 'Nonce validation failed.', 'wp-aaieduhr-auth' );
+
 			default:
 				break;
 		}
@@ -87,6 +112,7 @@ class WP_AAIEduHr_Helper {
 			case 'disabled_password_manipulation':
 			case 'registration_disabled':
 			case 'no_unique_id':
+			case 'nonce_failed':
 				return 'danger';
 
 			case 'username_exists':
@@ -155,11 +181,15 @@ class WP_AAIEduHr_Helper {
 	 * @return array
 	 */
 	public static function resolve_error_codes() {
+
 		$error_codes = [];
 
 		if ( isset( $_GET['errors'] ) ) {
 			// Error message codes will be given as GET parameter, as a comma separated list.
-			$error_codes = explode( ',', $_GET['errors'] );
+			$error_codes = explode(
+                ',',
+               sanitize_text_field(wp_unslash( $_GET['errors'] )),
+            );
 		}
 
 		return $error_codes;
@@ -171,6 +201,7 @@ class WP_AAIEduHr_Helper {
 	 * @return array
 	 */
 	public static function resolve_error_messages() {
+
 		$errors = [];
 		if ( isset( $_GET['errors'] ) ) {
 			$error_codes = static::resolve_error_codes();
@@ -186,14 +217,14 @@ class WP_AAIEduHr_Helper {
 	/**
 	 * Get a string representing the message code.
 	 *
-	 * @return array
+	 * @return string
 	 */
 	public static function resolve_auth_message_code() {
 
 		$code = '';
 
 		if ( isset( $_GET['code'] ) ) {
-			$code = $_GET['code'];
+			$code = sanitize_text_field( wp_unslash( $_GET['code'] ) );
 		}
 
 		return $code;
